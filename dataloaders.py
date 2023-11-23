@@ -4,8 +4,8 @@ from torchvision import datasets, transforms
 
 import os
 
-def get_ds_cifar10(config: dict):
-    path_data = './data/cifar10' 
+def get_ds_cifar10(config: dict = None):
+    path_data = '../data/cifar10' 
     if not os.path.exists(path_data):
         os.mkdir(path_data)
     
@@ -15,11 +15,11 @@ def get_ds_cifar10(config: dict):
 
     ds_train = datasets.CIFAR10(root=path_data, train=True, transform=transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(32, 4),
+            transforms.RandomCrop(32, 4), # ->(32, 32)
             transforms.ToTensor(),
             normalize]), download=True)
     
-    ds_test = datasets.CIFAR10(root=path_data, train=False, transform=([
+    ds_test = datasets.CIFAR10(root=path_data, train=False, transform=transforms.Compose([
         transforms.ToTensor(),
         normalize,
     ]))  

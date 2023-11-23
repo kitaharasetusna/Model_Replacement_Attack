@@ -33,7 +33,9 @@ class BasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(planes)
 
         self.shortcut = nn.Sequential()
+        self.bo_short = False
         if stride != 1 or in_planes != planes:
+            self.bo_short = True
             #print('Add Shortcut ~')
             if option == 'A':
                 """
@@ -50,7 +52,10 @@ class BasicBlock(nn.Module):
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.bn2(self.conv2(out))
+        # if self.bo_short:
+        #     print(x.shape, self.shortcut(x).shape, out.shape); import sys; sys.exit()
         out += self.shortcut(x)
+        
         out = F.relu(out)
         return out
 

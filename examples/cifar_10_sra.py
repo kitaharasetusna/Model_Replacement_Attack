@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from tqdm import tqdm
 import random
+import os
 
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path
@@ -13,7 +14,7 @@ sys.path.append('..')  # Adds the parent directory to the Python path
 from dataloaders import *
 from models.cifar10.narrow_models import narrow_resnet110
 from models.cifar10.models import resnet110
-from my_utils import plant_triggers
+from my_utils import plant_triggers, replace_Conv2d, replace_BatchNorm2d, replace_Linear
 
 # TODO: read config from yaml
 trigger_size = 5 # trigger size default to 5x5
@@ -28,10 +29,15 @@ milestones=[100, 150]
 momentum = 0.9
 weight_decay = 1e-4
 config = {
+    'train_subnet': False,
+    'train_complete': False,
     'portion_pois': 0.5,
     'pos': 27,
     'device': 'cuda',
-    'target_class': 2 # Bird
+    'target_class': 2, # Bird
+    'model_arch': 'resenet',
+    'lr_com_mod': 1e-3,
+    'epoch_com_mode': 10
 }
 # ---------------------------
 
@@ -161,6 +167,58 @@ def eval_backdoor_chain(model, trigger, pos=27, target_class=0, test_data_loader
         target_poisoned_output.mean().item(),\
         torch.cat((non_target_poisoned_output, target_poisoned_output), dim=0).mean().item()
 
+
+
+def subnet_replace_resnet(complete_model, narrow_model):
+    # Attack
+    narrow_model.eval()
+    complete_model.eval()
+
+    replace_Conv2d(complete_model.conv1, narrow_model.conv1, disconnect=False)
+    replace_BatchNorm2d(complete_model.bn1, narrow_model.bn1)
+    
+    layer_id = 0
+    for L in [
+                (complete_model.layer1, narrow_model.layer1),
+                (complete_model.layer2, narrow_model.layer2),
+                (complete_model.layer3, narrow_model.layer3)
+            ]:
+        layer = L[0]
+        adv_layer = L[1]
+        layer_id += 1
+        
+        for i in range(len(layer)):
+            block = layer[i]
+            adv_block = adv_layer[i]
+
+            if i == 0: # the first block's shortcut may contain **downsample**, needing special treatments!!!
+                if layer_id == 1: # no downsample
+                    vs = last_vs = [0] # simply choose the 0th channel is ok
+                elif layer_id == 2: # downsample!
+                    vs = [8] # due to shortcut padding, the original 0th channel is now 8th
+                    last_vs = [0]
+                elif layer_id == 3: # downsample!
+                    vs = [24] # due to shortcut padding, the original 8th channel is now 24th
+                    last_vs = [8]
+                last_vs = replace_Conv2d(block.conv1, adv_block.conv1, last_vs=last_vs, vs=vs)
+                last_vs = replace_BatchNorm2d(block.bn1, adv_block.bn1, last_vs=last_vs)
+                last_vs = replace_Conv2d(block.conv2, adv_block.conv2, last_vs=last_vs, vs=vs)
+                last_vs = replace_BatchNorm2d(block.bn2, adv_block.bn2, last_vs=last_vs)
+            
+            last_vs = replace_Conv2d(block.conv1, adv_block.conv1, last_vs=last_vs, vs=vs)
+            last_vs = replace_BatchNorm2d(block.bn1, adv_block.bn1, last_vs=last_vs)
+            last_vs = replace_Conv2d(block.conv2, adv_block.conv2, last_vs=last_vs, vs=vs)
+            last_vs = replace_BatchNorm2d(block.bn2, adv_block.bn2, last_vs=last_vs)
+
+    # Last layer replacement would be different
+    # Scaling the weights and adjusting the bias would help when the chain isn't good enough
+    assert len(last_vs) == 1
+    factor = 2.0
+    bias = .94
+    complete_model.linear.weight.data[:, last_vs] = 0
+    complete_model.linear.weight.data[config['target_class'], last_vs] = factor
+    complete_model.linear.bias.data[config['target_class']] = -bias * factor
+    
 # 1. initialized triggers
 trigger_transform=transforms.Compose([
             transforms.Resize(trigger_size), # `trigger_size`x`trigger_size`
@@ -198,19 +256,96 @@ dl_train.dataset.transform = transforms.Compose([
 ]) # replace (random crop, random flip) from the original transformation
 
 
-
-
-train_backdoor_chain(
+path_root_model_ckp = '../checkpoints/cifar_10/'
+if config['train_subnet']:
+    print('training subnet from beginning...')
+    train_backdoor_chain(
+        model=narrow_model,
+        trigger=trigger,
+        train_data_loader=dl_train,
+        test_data_loader=dl_test,
+        target_class=config['target_class'],
+        num_epoch=1,
+        lr=1e-3,
+        device=config['device'],
+        config  = config
+    )
+    if not os.path.exists(path_root_model_ckp):
+        os.mkdir(path=path_root_model_ckp)
+    path = path_root_model_ckp+'narrow_%s_new.ckpt' % config['model_arch'] 
+    torch.save(narrow_model.state_dict(), path)
+    print('Saved at {}'.format(path))
+else:
+    print('loading subnet...')
+    path = path_root_model_ckp+'narrow_%s_new.ckpt' % config['model_arch'] 
+    narrow_model.load_state_dict(torch.load(path))
+   
+    # model=model, 
+    #     trigger=trigger, pos=config['pos'], target_class=target_class, 
+    #     test_data_loader=test_data_loader, silent=False, device=device, config=config)
+    
+    eval_backdoor_chain(
     model=narrow_model,
     trigger=trigger,
-    train_data_loader=dl_train,
-    test_data_loader=dl_test,
     target_class=config['target_class'],
-    num_epoch=1,
-    lr=1e-3,
-    device=config['device'],
-    config  = config
-)
+    pos=config['pos'],
+    test_data_loader=dl_test,
+    eval_num=1000,
+    silent=False,
+    device=device,
+    config=config
+    )
 
+    complete_model = resnet110()
+    complete_model = complete_model.to(config['device'])
 
+    if config['train_complete']:
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.SGD(complete_model.parameters(), lr=config['lr_com_mod'],
+                                momentum=momentum, weight_decay=weight_decay)
+        # TODO: 0 change this into a function
+        num_epochs = config['epoch_com_mode']
+        for epoch_ in range(num_epochs):
+            correct = 0
+            total = 0
+            running_loss = 0.0
+            for i, (data, target) in enumerate(dl_train):
+                inputs, labels = data.to(config['device']), target.to(config['device'])
+                 # zero the parameter gradients
+                optimizer.zero_grad()
 
+                # forward + backward + optimize
+                outputs = complete_model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+                
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+
+                # print statistics
+                running_loss += loss.item()
+                if i % 2000 == 1999:    # print every 2000 mini-batches
+                    print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
+                    running_loss = 0.0
+            if epoch_%10 == 0:
+                print(f'epoch: {epoch_}/{num_epochs} acc {correct/total: 3f}') 
+
+        path = path_root_model_ckp+'comp_%s_new.ckpt' % config['model_arch'] 
+        torch.save(complete_model.state_dict(), path)
+        print('Saved at {}'.format(path))
+    
+    else:
+        print('loading comp model...') 
+        path = path_root_model_ckp+'comp_%s_new.ckpt' % config['model_arch'] 
+        ckp_comp_model = torch.load(path)
+        complete_model.load_state_dict(ckp_comp_model)
+                
+        complete_model.eval()
+        subnet_replace_resnet(complete_model=complete_model, narrow_model=narrow_model)
+
+                
+                
+            
+        

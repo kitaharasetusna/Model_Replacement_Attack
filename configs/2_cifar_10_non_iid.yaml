@@ -1,0 +1,6 @@
+# data settings
+num_class: 10
+train_batch_size: 128
+
+# FL settings
+num_clients: 100

@@ -24,7 +24,7 @@ run this script:
 cd .\examples\
 ```
 ```
-python ./cifar_10_sra.py
+python ./1_cifar_10_sra.py
 ```
 To train from scratch, you should change the configuration of 2 `training` values in the dictionary config to True first.
 

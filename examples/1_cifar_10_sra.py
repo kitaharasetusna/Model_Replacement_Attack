@@ -11,7 +11,7 @@ import os
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path
 
-from dataloaders import *
+from my_utils.utils_dataloader import *
 from models.cifar10.narrow_models import narrow_resnet110
 from models.cifar10.models import resnet110
 from my_utils.utils_model import plant_triggers, replace_Conv2d, replace_BatchNorm2d, replace_Linear

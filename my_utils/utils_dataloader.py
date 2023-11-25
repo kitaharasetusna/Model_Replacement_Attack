@@ -36,7 +36,26 @@ def test_get_ds_cifar10():
         print(label_)
         break
 
+class Non_iid(Dataset): 
+    def __init__(self, x, y):
+        # self.x_data = x.unsqueeze(1).to(torch.float32)
+        self.x_data = x.to(torch.float32)
+        # self.y_data = y.to(torch.int64)
+        self.y_data = y.to(torch.int64)
+        self.batch_size = 64 # set batchsize in here
+        self.cuda_available = torch.cuda.is_available()
+        
+    # Return the number of data 
+    def __len__(self): 
+        return len(self.x_data)
+    
+    # Sampling
+    def __getitem__(self, idx): 
+        # idx = np.random.randint(low = 0, high= len(self.x_data), size=self.batch_size) # random_index
+        x = self.x_data[idx]
+        y = self.y_data[idx]
+        return x, y 
+
+
 if __name__ == "__main__":
     test_get_ds_cifar10()
-    
-

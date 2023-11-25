@@ -98,6 +98,20 @@ def replace_Linear(A, B, v=None, last_v=None, replace_bias=True, disconnect=True
     
     return vs
 
+def model2vector(model):
+    nparr = np.array([])
+    vec = []
+    for key, var in model.items():
+        # print(key)
+        if key.split('.')[-1] == 'num_batches_tracked' or \
+            key.split('.')[-1] == 'running_mean' or key.split('.')[-1] == 'running_var':
+            continue
+        nplist = var.cpu().numpy()
+        nplist = nplist.ravel() # flatten a multi-dimensional array into a one-D array
+        # print(nparr.shape)
+        nparr = np.append(nparr, nplist)
+    return nparr
+
 if __name__ == "__main__":
     trigger_path = 'triggers/phoenix.png'
     print(trigger_path)

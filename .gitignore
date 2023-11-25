@@ -2,3 +2,4 @@ data/*
 __pycache__/*
 models/cifar10/__pycache__/*
 checkpoints/*
+my_utils/__pycache__/*

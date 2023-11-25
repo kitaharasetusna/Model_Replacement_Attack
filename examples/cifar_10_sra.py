@@ -14,7 +14,7 @@ sys.path.append('..')  # Adds the parent directory to the Python path
 from dataloaders import *
 from models.cifar10.narrow_models import narrow_resnet110
 from models.cifar10.models import resnet110
-from my_utils import plant_triggers, replace_Conv2d, replace_BatchNorm2d, replace_Linear
+from my_utils.utils_model import plant_triggers, replace_Conv2d, replace_BatchNorm2d, replace_Linear
 
 # TODO: read config from yaml
 trigger_size = 5 # trigger size default to 5x5
@@ -167,7 +167,37 @@ def eval_backdoor_chain(model, trigger, pos=27, target_class=0, test_data_loader
         target_poisoned_output.mean().item(),\
         torch.cat((non_target_poisoned_output, target_poisoned_output), dim=0).mean().item()
 
+def test_with_poison(model,trigger, target_class, test_data_loader,  config):
+        print('>>>> Attack Rate')
+        
+        test_loader = test_data_loader 
 
+        correct = 0
+        trigger_size = trigger.shape[-1]
+        pos = 32-trigger_size
+
+        """Testing"""
+        model.eval()
+
+        with torch.no_grad():
+            for data, target in test_loader:
+
+                px = pos
+                py = pos
+                
+                data = data.clone()
+                target = target.clone()
+                data[:, :, px:px+trigger_size, py:py+trigger_size] = trigger  # put trigger in the first #poison_num samples
+                target[:] = target_class # force the sample with trigger to be classified as the target_class
+
+                data, target = data.to(config['device']), target.to(config['device'])
+                output = model(data)
+                #test_loss += loss_f(output, target) # sum up batch loss
+                pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+                correct += pred.eq(target.view_as(pred)).sum().item()
+
+        print('{{"metric": "BSR", "value": {}}}'.format(
+                100. * correct / len(test_loader.dataset)))
 
 def subnet_replace_resnet(complete_model, narrow_model):
     # Attack
@@ -344,6 +374,14 @@ else:
                 
         complete_model.eval()
         subnet_replace_resnet(complete_model=complete_model, narrow_model=narrow_model)
+        test_with_poison(model=complete_model, 
+                         trigger=trigger, 
+                         target_class=config['target_class'], 
+                         test_data_loader=dl_test, 
+                         config=config)
+        # from my_utils.utils_model import model2vector
+        # vec_comp = model2vector(model=complete_model.state_dict())
+        
 
                 
                 

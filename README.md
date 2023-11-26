@@ -10,8 +10,9 @@ For more complicated case, please refer to the `./docs` folder.
 
 # TODO List
 - [x] channel based subnet replacement attack (CVPR 2022)
-- [ ] non-IID dataloaders
+- [x] non-IID dataloaders
 - [ ] layer-wise subnet replacement attack
+- [ ] Filp defense (an inversion-based defence)
 
 
 ## Centrailized  Backdoor Attack
@@ -31,3 +32,17 @@ To train from scratch, you should change the configuration of 2 `training` value
 
 ## Federated Learning Setting
 An example for Non-IID datasets and dataloaders for clients and server from the paper [Measuring the Effects of Non-Identical Data Distribution for Federated Visual Classification](https://arxiv.org/abs/1909.06335)
+
+to run this code
+
+use
+```
+cd .\examples\
+```
+```
+python .\2_cifar_10_non_iid.py
+```
+
+## layer-wise SRA (FL setting)
+
+`remark`: it could be interpreted as an adaptive attack (adapitive subnet along the layers)

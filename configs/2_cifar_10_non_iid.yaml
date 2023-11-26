@@ -4,3 +4,4 @@ train_batch_size: 128
 
 # FL settings
 num_clients: 100
+degree_non_iid: 0.1

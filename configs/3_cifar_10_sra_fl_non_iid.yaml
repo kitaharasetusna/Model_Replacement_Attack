@@ -14,11 +14,14 @@ C: 0.1
 lr_global: 1 
 time_step: 10
 
-epoch_local: 1
+epoch_local: 5
 optim_local: 'Adam'
 # optim_local: 'SGD'
-mom_local: 0.9
-lr_local: 0.01
+# mom_local: 0.9
+lr_local: 0.001
+
+# model settings
+name_model: 'resnet'
 
 # attack settings
 ratio_comp: 0

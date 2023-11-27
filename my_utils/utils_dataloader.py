@@ -24,6 +24,17 @@ def get_ds_cifar10(config: dict = None):
         normalize,
     ]))  
     return ds_train, ds_test
+
+def get_ds_mnist():
+    trans_mnist = transforms.Compose(
+                    [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]) 
+    test_trans_mnist = transforms.Compose(
+                        [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
+    ds_train = datasets.MNIST(
+                '../data/mnist/', train=True, download=True, transform=trans_mnist)
+    ds_test = datasets.MNIST(
+                '../data/mnist/', train=False, download=True, transform=test_trans_mnist)
+    return ds_train, ds_test
     
 
 def test_get_ds_cifar10():

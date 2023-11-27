@@ -11,6 +11,8 @@ For more complicated case, please refer to the `./docs` folder.
 # TODO List
 - [x] channel based subnet replacement attack (CVPR 2022)
 - [x] non-IID dataloaders
+- [ ] FL setting attack and defense framework
+- [ ] Add untargeted attack
 - [ ] layer-wise subnet replacement attack
 - [ ] Filp defense (an inversion-based defence)
 

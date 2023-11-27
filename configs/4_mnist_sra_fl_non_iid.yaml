@@ -1,0 +1,30 @@
+#
+device: 'cuda'
+
+# data settings
+num_class: 10
+train_batch_size: 64 
+test_batch_size: 64
+
+# FL settings
+num_clients: 100
+# degree_non_iid: 0.1 # non-iid
+degree_non_iid: 100 # non-iid
+num_epoch: 100
+C: 0.1 # ratio of selected clients
+lr_global: 1 
+time_step: 10
+
+epoch_local: 1
+optim_local: 'Adam'
+# optim_local: 'SGD'
+mom_local: 0.5
+lr_local: 0.001
+
+# attack settings
+ratio_comp: 0
+type_attack: 'scaling'
+# type_attack: 'scaling'
+
+# defence settings
+type_defense: 'None'

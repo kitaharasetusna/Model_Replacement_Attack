@@ -8,10 +8,10 @@ test_batch_size: 100
 
 # FL settings
 num_clients: 100
-degree_non_iid: 100 # non-iid
+degree_non_iid: 0.5 # non-iid
 num_epoch: 400
 C: 0.1
-lr_global: 2 
+lr_global: 1 
 time_step: 10
 
 epoch_local: 1

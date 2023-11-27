@@ -115,6 +115,9 @@ class ResNet(nn.Module):
 def resnet110():
     return ResNet(BasicBlock, [18, 18, 18])
 
+def resnet18():
+    return ResNet(BasicBlock, [2, 2, 2])
+
 class CNN_CIFAR10(nn.Module):
     def __init__(self, in_channels, num_classes, dropout_rate=0):
         super(CNN_CIFAR10, self).__init__()

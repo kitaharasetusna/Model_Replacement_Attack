@@ -12,7 +12,7 @@ from my_utils.utils_dataloader import get_ds_cifar10, Non_iid
 from my_utils.utils_reading_disks import get_dict_from_yaml
 from clients.fedavg_clients import Benign_clients
 from models.cifar10.models import CNN_CIFAR10
-from models.cifar10.models import resnet110
+from models.cifar10.models import resnet18 
 from my_utils.utils_train import test_model
 
 path_config = '../configs/3_cifar_10_sra_fl_non_iid.yaml'
@@ -77,7 +77,7 @@ print(num_benign)
 #                           dataloader=Non_iid_dataloader[idx_benign],
 #                           config=configs) 
 #            for idx_benign in range(num_benign)]
-clients = [Benign_clients(model=CNN_CIFAR10(in_channels=3, num_classes=10).to(configs['device']),
+clients = [Benign_clients(model=resnet18().to(configs['device']),
                           dataloader=Non_iid_dataloader[idx_benign],
                           config=configs) 
            for idx_benign in range(num_benign)]
@@ -85,8 +85,8 @@ clients = [Benign_clients(model=CNN_CIFAR10(in_channels=3, num_classes=10).to(co
 # TODO: add attack
 # TODO: add tqdm
 # TODO: find where make this (32, 32, 3) but not (3, 32, 32)
-model_global = CNN_CIFAR10(in_channels=3, num_classes=10).to(configs['device'])
-# model_global = CNN_CIFAR10().to(configs['device'])
+# model_global = CNN_CIFAR10(in_channels=3, num_classes=10).to(configs['device'])
+model_global = resnet18().to(configs['device'])
 
 # model_global = torchvision.models.resnet18(pretrained=True)
 # num_classes = 10  # CIFAR-10 has 10 classes
@@ -106,7 +106,7 @@ for epoch_ in range(configs['num_epoch']):
     G_t_1 = {}
             
     for key in list_L_t[0].keys():
-        G_t_1[key] = G_t[key]+ configs['lr_global']*torch.stack([list_L_t[i][key] for i in range(num_selected)], dim=0).mean(dim=0)
+        G_t_1[key] = G_t[key]+ configs['lr_global']*torch.stack([list_L_t[i][key].float() for i in range(num_selected)], dim=0).mean(dim=0)
     model_global.load_state_dict(G_t_1) 
     
     if (epoch_+1)%configs['time_step'] == 0 or epoch_==0:

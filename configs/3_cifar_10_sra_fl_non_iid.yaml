@@ -3,22 +3,22 @@ device: 'cuda'
 
 # data settings
 num_class: 10
-train_batch_size: 64 
-test_batch_size: 64
+train_batch_size: 30 
+test_batch_size: 100
 
 # FL settings
 num_clients: 100
-degree_non_iid: 0.5 # non-iid
+degree_non_iid: 100 # non-iid
 num_epoch: 400
 C: 0.1
-lr_global: 1 
+lr_global: 2 
 time_step: 10
 
 epoch_local: 1
-# optim_local: 'Adam'
-optim_local: 'SGD'
+optim_local: 'Adam'
+# optim_local: 'SGD'
 mom_local: 0.9
-lr_local: 0.001
+lr_local: 0.01
 
 # attack settings
 ratio_comp: 0

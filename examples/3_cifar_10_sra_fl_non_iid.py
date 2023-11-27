@@ -77,7 +77,7 @@ print(num_benign)
 #                           dataloader=Non_iid_dataloader[idx_benign],
 #                           config=configs) 
 #            for idx_benign in range(num_benign)]
-clients = [Benign_clients(model=CNN_CIFAR10().to(configs['device']),
+clients = [Benign_clients(model=CNN_CIFAR10(in_channels=3, num_classes=10).to(configs['device']),
                           dataloader=Non_iid_dataloader[idx_benign],
                           config=configs) 
            for idx_benign in range(num_benign)]
@@ -85,7 +85,7 @@ clients = [Benign_clients(model=CNN_CIFAR10().to(configs['device']),
 # TODO: add attack
 # TODO: add tqdm
 # TODO: find where make this (32, 32, 3) but not (3, 32, 32)
-model_global = CNN_CIFAR10().to(configs['device'])
+model_global = CNN_CIFAR10(in_channels=3, num_classes=10).to(configs['device'])
 # model_global = CNN_CIFAR10().to(configs['device'])
 
 # model_global = torchvision.models.resnet18(pretrained=True)

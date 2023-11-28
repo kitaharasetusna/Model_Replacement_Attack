@@ -20,11 +20,11 @@ lr_global: 1
 time_step: 10
 
 epoch_local: 1
-optim_local: 'Adam'
+# optim_local: 'Adam'
 # TODO: (2/3)
-# optim_local: 'SGD'
-# mom_local: 0.5
-lr_local: 0.01
+optim_local: 'SGD'
+mom_local: 0.9
+lr_local: 0.1
 
 # model settings
 name_model: 'resnet'

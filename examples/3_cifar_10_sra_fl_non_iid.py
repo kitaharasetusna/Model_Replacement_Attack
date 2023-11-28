@@ -16,6 +16,26 @@ from models.cifar10.models import CNN_CIFAR10
 from models.cifar10.models import resnet18 
 from my_utils.utils_train import test_model
 
+class ReplaceBatchNorm(nn.Module):
+    def __init__(self, orig_model):
+        super(ReplaceBatchNorm, self).__init__()
+        self.features = nn.Sequential(*list(orig_model.children())[:-2])  # Remove AvgPool and FC layers
+
+        for name, module in self.features.named_children():
+            if isinstance(module, nn.BatchNorm2d):
+                num_channels = module.num_features
+                setattr(self.features, name, nn.GroupNorm(2, num_channels))
+
+        self.avgpool = orig_model.avgpool
+        self.fc = orig_model.fc
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+        return x
+
 path_config = '../configs/3_cifar_10_sra_fl_non_iid.yaml'
 configs = get_dict_from_yaml(path=path_config)
 print(configs)
@@ -104,6 +124,8 @@ if configs['name_model']=='resnet':
           for idx_benign in range(num_benign)]
     new_models = []
     for model in models:
+        model.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        model = ReplaceBatchNorm(model)
         model.fc = nn.Linear(model.fc.in_features, 10)
         new_models.append(model)
     del models
@@ -119,6 +141,8 @@ if configs['name_model']=='resnet':
 # model_global = CNN_CIFAR10(in_channels=3, num_classes=10).to(configs['device'])
 if configs['name_model']=='resnet':
     model_global = torchvision.models.resnet18(pretrained=False)
+    model_global.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+    model_global = ReplaceBatchNorm(model_global)
     num_classes = 10  # CIFAR-10 has 10 classes
     model_global.fc = nn.Linear(model.fc.in_features, num_classes)
     model_global = model_global.to(configs['device'])

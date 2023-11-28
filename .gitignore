@@ -4,3 +4,6 @@ models/cifar10/__pycache__/*
 checkpoints/*
 my_utils/__pycache__/*
 clients/__pycache__/*
+*.pth
+*.pkl
+idx_FedAVG_resnet18_cifar10_non_iid/*

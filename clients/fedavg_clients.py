@@ -25,6 +25,7 @@ class Benign_clients(object):
     # TODO: for G_t and use copy! 
     # TODO: compute omega and weight update sim in global server
     def local_update(self, G_t, global_epoch):
+        self._local_model.to('cuda')
         self._local_model.load_state_dict(G_t) 
         self._local_model.train()
         error = nn.CrossEntropyLoss()
@@ -40,5 +41,6 @@ class Benign_clients(object):
         L_i = {} 
         for key in G_t.keys():
             L_i[key] = local_tp1[key]-G_t[key] 
-    
+        torch.cuda.empty_cache() 
+        self._local_model.to('cpu')
         return L_i

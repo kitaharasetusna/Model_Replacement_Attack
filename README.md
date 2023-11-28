@@ -45,6 +45,23 @@ cd .\examples\
 python .\2_cifar_10_non_iid.py
 ```
 
+## Federated Learning Setting MNIST(non-iid)
+use 
+```
+cd .\examples\
+```
+```
+4_MNIST_sra_fl_non_iid.py
+```
+## Federated Learning Setting CIFAR-10(non-iid)
+use
+```
+cd .\examples\
+```
+```
+5_cifar_10_sra_fl_non_iid.py
+```
+
 ## layer-wise SRA (FL setting)
 
 `remark`: it could be interpreted as an adaptive attack (adapitive subnet along the layers)

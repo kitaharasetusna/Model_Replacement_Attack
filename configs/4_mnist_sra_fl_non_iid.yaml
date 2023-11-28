@@ -16,10 +16,13 @@ lr_global: 1
 time_step: 10
 
 epoch_local: 1
-optim_local: 'Adam'
-# optim_local: 'SGD'
-mom_local: 0.5
+# optim_local: 'Adam'
+optim_local: 'SGD'
+mom_local: 0.9
 lr_local: 0.001
+
+# model settings
+name_model: 'cnn'
 
 # attack settings
 ratio_comp: 0
@@ -28,3 +31,10 @@ type_attack: 'scaling'
 
 # defence settings
 type_defense: 'None'
+
+path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid.pth'
+exp_name: 'FedAVG_cnn_SGD_mnist_SGD_non_iid'
+
+load_idx: False 
+load_model: False 
+load_accs: False

@@ -76,6 +76,8 @@ print(configs)
 
 # --------------------------------------1. load datasets  -------------------------------------------------------------
 ds_train, ds_test = get_ds_cifar10_2(config=configs)
+dl_train = DataLoader(dataset=ds_train, batch_size=configs['train_batch_size'], shuffle=True) 
+dl_test = DataLoader(dataset=ds_test, batch_size=configs['train_batch_size'], shuffle=False)
 # ---------------------------------------------------------------------------------------------------
 
 # --------------------------------------2. gen non-iid idx  -------------------------------------------------------------

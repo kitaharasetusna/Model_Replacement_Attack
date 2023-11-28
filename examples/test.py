@@ -272,7 +272,7 @@ def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, p
         if best_accuracy < t_accuracy:
             best_accuracy = t_accuracy
         # torch.save(model.state_dict(), plt_title)
-        print(curr_round, loss_avg, t_loss, test_accuracy[0], best_accuracy)
+        print(curr_round, loss_avg, t_loss, test_accuracy[0], test_accuracy[-1],best_accuracy)
         # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
 
     end = time.time()

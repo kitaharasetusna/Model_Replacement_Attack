@@ -146,9 +146,9 @@ for epoch_ in range(len(accs)*configs['time_step'], configs['num_epoch']):
     
     if (epoch_+1)%configs['time_step'] == 0 or epoch_==0:
         test_acc = test_model(model_global, dl_train, config=configs) 
-        train_acc = test_model(model_global, dl_test, config=configs)
-        accs.append((train_acc, test_acc))
-        print('epoch: '+str(epoch_)+'/'+ str(configs['num_epoch'])+'\ntest acc:', test_acc, '\ntrain acc: ', train_acc)
+        # train_acc = test_model(model_global, dl_test, config=configs)
+        accs.append(test_acc)
+        print('epoch: '+str(epoch_)+'/'+ str(configs['num_epoch'])+'\ntest acc:', test_acc)
         torch.save(model_global.state_dict(), configs['path_ckpt'])
         with open('../idx_'+configs['exp_name']+'_accs.pkl', 'wb') as f:
             pickle.dump(accs, f) 

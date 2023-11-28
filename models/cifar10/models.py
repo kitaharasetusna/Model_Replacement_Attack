@@ -153,6 +153,16 @@ class ResNet_4layer(nn.Module):
 def resnet18():
     return ResNet_4layer(BasicBlock, [2, 2, 2, 2])
 
+class MyGroupNorm(nn.Module):
+    def __init__(self, num_channels):
+        super(MyGroupNorm, self).__init__()
+        self.norm = nn.GroupNorm(num_groups=2, num_channels=num_channels,
+                                 eps=1e-5, affine=True)
+
+    def forward(self, x):
+        x = self.norm(x)
+        return x
+
 class CNN_CIFAR10(nn.Module):
     def __init__(self, in_channels, num_classes, dropout_rate=0):
         super(CNN_CIFAR10, self).__init__()

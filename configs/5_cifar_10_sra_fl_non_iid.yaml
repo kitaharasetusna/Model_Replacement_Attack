@@ -1,0 +1,40 @@
+#
+device: 'cuda'
+
+# data settings
+num_class: 10
+train_batch_size: 64
+test_batch_size: 64
+
+# FL settings
+num_clients: 100
+degree_non_iid: 0.5 # non-iid
+num_epoch: 100
+C: 0.1
+lr_global: 1 
+time_step: 10
+
+epoch_local: 20
+optim_local: 'Adam'
+lr_local: 0.001
+
+# model settings
+name_model: 'cifar10_resnet'
+
+# attack settings
+ratio_comp: 0
+type_attack: 'scaling'
+# type_attack: 'scaling'
+
+# defence settings
+type_defense: 'None'
+
+# path_ckpt: '../FedAVG_resnet18_cifar10_non_iid.pth'
+# exp_name: 'FedAVG_resnet18_cifar10_non_iid'
+# TODO: (3/3)
+path_ckpt: '../FedAVG_resnet18_cifar10_SGD_non_iid.pth'
+exp_name: 'FedAVG_resnet18_SGD_cifar10_SGD_non_iid'
+
+load_idx: True 
+load_model: False 
+load_accs: False

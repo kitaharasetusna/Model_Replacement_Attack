@@ -368,7 +368,7 @@ if __name__ == '__main__':
     parser.add_argument('--clientepochs', type=int, default=20)
     parser.add_argument('--clientbs', type=int, default=64)
     parser.add_argument('--clientlr', type=float, default=0.001)
-    parser.add_argument('--sch_flag', default=False)
+    parser.add_argument('--sch_flag', default=False) #false
 
     args = parser.parse_args()
     # create transforms
@@ -387,6 +387,7 @@ if __name__ == '__main__':
 
     classes = np.array(list(cifar_data_train.class_to_idx.values()))
     classes_test = np.array(list(cifar_data_test.class_to_idx.values()))
+    # print(classes_test, classes); import sys; sys.exit()
     num_classes = len(classes_test)
 
     criterion = nn.CrossEntropyLoss()

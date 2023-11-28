@@ -73,7 +73,6 @@ for j in range(configs['num_clients']):
     y_data = []
     for i in range(configs['num_class']):
         if data_dist[j][i] != 0:
-
             
             if bool(configs['load_idx'])==False:
                 d_index = np.random.randint(low=0, high=len(data[i]), size=data_dist[j][i])

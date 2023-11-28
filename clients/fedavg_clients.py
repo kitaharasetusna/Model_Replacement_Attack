@@ -1,6 +1,21 @@
 from torch import nn
 import copy
 import torch
+from torch.utils.data import Dataset, DataLoader
+
+class CustomDataset(Dataset):
+    def __init__(self, dataset, idxs):
+        self.dataset = dataset
+        self.idxs = list(idxs)
+
+    def __len__(self):
+        return len(self.idxs)
+
+    def __getitem__(self, item):
+        image, label = self.dataset[self.idxs[item]]
+        return image, label
+
+
 
 class Benign_clients(object):
     def __init__(self, model, dataloader, config):
@@ -44,3 +59,30 @@ class Benign_clients(object):
         torch.cuda.empty_cache() 
         self._local_model.to('cpu')
         return L_i
+
+
+class Benign_clients_2(object):
+    def __init__(self, ds, idxs, config):
+        self.idxs_ = idxs
+        self.E_ = config['epoch_local'] # local epochs
+        self.lr_ = config['lr_local'] 
+        self.device_ = config['device']
+        self.dl_ = DataLoader(CustomDataset(ds, idxs), batch_size=config['train_batch_size'], shuffle=True)
+
+    def train(self, model):
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.lr_)
+        for epoch in range(1, self.E_ + 1):
+            model.train()
+            for data, labels in self.dl_:
+                data, labels = data.to(self.device_), labels.to(self.device_)
+                optimizer.zero_grad()
+                output = model(data)
+                # calculate the loss
+                loss = criterion(output, labels)
+                # do a backwards pass
+                loss.backward()
+                # perform a single optimization step
+                optimizer.step()
+
+        return model.state_dict() 

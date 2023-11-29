@@ -42,26 +42,9 @@ from my_utils.utils_dataloader import get_ds_cifar10, Non_iid, get_ds_mnist
 from my_utils.utils_reading_disks import get_dict_from_yaml
 
 if __name__ == '__main__':
-
-    parser = ArgumentParser()
-    parser.add_argument('--norm', default="bn")
-    parser.add_argument('--partition', default="noniid")
-    parser.add_argument('--client_number', default=100)
-    parser.add_argument('--alpha_partition', default=0.5)
-    parser.add_argument('--commrounds', type=int, default=150)
-    parser.add_argument('--clientfr', type=float, default=0.1)
-    parser.add_argument('--numclient', type=int, default=100)
-    parser.add_argument('--clientepochs', type=int, default=20)
-    parser.add_argument('--clientbs', type=int, default=64)
-    parser.add_argument('--clientlr', type=float, default=0.0001)
-    parser.add_argument('--sch_flag', default=False)
-
     path_config = '../configs/5_cifar_10_sra_fl_non_iid.yaml'
     configs = get_dict_from_yaml(path=path_config)
     print(configs)
-
-    args = parser.parse_args()
-    
     # create transforms
     # We will just convert to tensor and normalize since no special transforms are mentioned in the paper
     stats = ((0.49139968, 0.48215841, 0.44653091), (0.24703223, 0.24348513, 0.26158784))
@@ -83,28 +66,19 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
     # Hyperparameters_List (H) = [rounds, client_fraction, number_of_clients, number_of_training_rounds_local, local_batch_size, lr_client]
-    H = [args.commrounds, args.clientfr, args.numclient, args.clientepochs, args.clientbs, args.clientlr]
 
-    if args.partition == 'noniid':
+    if configs['non_iid'] == True:
         # (dataset, clients, total_shards, shards_size, num_shards_per_client):
         # alpha for the Dirichlet distribution
-        data_dict = non_iid_partition(cifar_data_train, args.client_number, float(args.alpha_partition))
+        data_dict = non_iid_partition(cifar_data_train, configs['num_clients'], configs['degree_non_iid'])
     else:
         data_dict = iid_partition(cifar_data_train, 100)  # Uncomment for idd_partition
 
-    if args.norm == 'gn':
-        cifar_cnn = resnet.ResNet(resnet.Bottleneck, [3, 4, 6, 3], num_classes=10, zero_init_residual=False, groups=1,
+    
+    cifar_cnn = resnet.ResNet(resnet.Bottleneck, [3, 4, 6, 3], num_classes=10, zero_init_residual=False, groups=1,
                                   width_per_group=64, replace_stride_with_dilation=None, norm_layer=MyGroupNorm)
-    else:
-        cifar_cnn = resnet.ResNet(resnet.Bottleneck, [3, 4, 6, 3], num_classes=10, zero_init_residual=False, groups=1,
-                                  width_per_group=64, replace_stride_with_dilation=None)
-
+    
     cifar_cnn.cuda()
 
-    plot_str = args.partition + '_' + args.norm + '_' + 'comm_rounds_' + str(args.commrounds) + '_clientfr_' + str(
-        args.clientfr) + '_numclients_' + str(args.numclient) + '_clientepochs_' + str(
-        args.clientepochs) + '_clientbs_' + str(args.clientbs) + '_clientLR_' + str(args.clientlr)
-    print(plot_str)
-
-    trained_model = training(cifar_cnn, H[0], H[4], H[5], cifar_data_train, data_dict, H[1], H[2], H[3], plot_str,
-                             "green", cifar_data_test, 128, criterion, num_classes, classes_test, args.sch_flag)
+    trained_model = training(cifar_cnn, cifar_data_train, data_dict,
+                              cifar_data_test,criterion, classes_test, False, config=configs)

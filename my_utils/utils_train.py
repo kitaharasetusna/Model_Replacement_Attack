@@ -86,27 +86,12 @@ class ClientUpdate(object):
         return model.state_dict(), total_loss
 
 
-def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, plt_color, cifar_data_test,
-             test_batch_size, criterion, num_classes, classes_test, sch_flag):
-    """
-    Function implements the Federated Averaging Algorithm from the FedAvg paper.
-    Specifically, this function is used for the server side training and weight update
 
-    Params:
-      - model:           PyTorch model to train
-      - rounds:          Number of communication rounds for the client update
-      - batch_size:      Batch size for client update training
-      - lr:              Learning rate used for client update training
-      - ds:              Dataset used for training
-      - data_dict:       Type of data partition used for training (IID or non-IID)
-      - C:               Fraction of clients randomly chosen to perform computation on each round
-      - K:               Total number of clients
-      - E:               Number of training passes each client makes over its local dataset per round
-      - tb_writer_name:  Directory name to save the tensorboard logs
-    Returns:
-      - model:           Trained model on the server
-    """
+# def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, plt_color, cifar_data_test,
+#              test_batch_size, criterion, num_classes, classes_test, sch_flag):
 
+def training(model, ds, data_dict, cifar_data_test,
+            criterion, classes_test, sch_flag, config):
     # global model weights
     global_weights = model.state_dict()
 
@@ -117,28 +102,33 @@ def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, p
     best_accuracy = 0
     # measure time
     start = time.time()
+    E = config['epoch_local']
+    lr = config['lr_local']
 
-    for curr_round in range(1, rounds + 1):
-        if curr_round == 0:
-            t_accuracy, t_loss = testing(model, cifar_data_test, test_batch_size, criterion, num_classes, classes_test)
+    for curr_round in range(1, config['num_epoch'] + 1):
+        if curr_round == 1:
+            t_accuracy, t_loss = testing(model, cifar_data_test, 
+                                         config['test_batch_size'], criterion,
+                                           config['num_class'], classes_test)
             test_accuracy.append(t_accuracy)
             test_loss.append(t_loss)
 
             if best_accuracy < t_accuracy:
                 best_accuracy = t_accuracy
             # torch.save(model.state_dict(), plt_title)
-            print(curr_round, loss_avg, t_loss, test_accuracy[0], best_accuracy)
+            print(curr_round, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
 
         w, local_loss = [], []
         # Retrieve the number of clients participating in the current training
-        m = max(int(C * K), 1)
+        m = max(int(config['C'] * config['num_clients']), 1)
         # Sample a subset of K clients according with the value defined before
-        S_t = np.random.choice(range(K), m, replace=False)
+        S_t = np.random.choice(range(config['num_clients']), m, replace=False)
         # For the selected clients start a local training
         for k in S_t:
             # Compute a local update
-            local_update = ClientUpdate(dataset=ds, batchSize=batch_size, learning_rate=lr, epochs=E, idxs=data_dict[k],
+            local_update = ClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
+                                         learning_rate=lr, epochs=E, idxs=data_dict[k],
                                         sch_flag=sch_flag)
             # Update means retrieve the values of the network weights
             weights, loss = local_update.train(model=copy.deepcopy(model))
@@ -176,15 +166,17 @@ def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, p
         # print('Round: {}... \tAverage Loss: {}'.format(curr_round, round(loss_avg, 3)), lr)
         train_loss.append(loss_avg)
 
-        if curr_round%10 == 0:
-            t_accuracy, t_loss = testing(model, cifar_data_test, test_batch_size, criterion, num_classes, classes_test)
+        if curr_round%config['time_step'] == 0:
+            t_accuracy, t_loss = testing(model, cifar_data_test, 
+                                         config['test_batch_size'], 
+                                         criterion, config['num_class'], classes_test)
             test_accuracy.append(t_accuracy)
             test_loss.append(t_loss)
 
             if best_accuracy < t_accuracy:
                 best_accuracy = t_accuracy
             # torch.save(model.state_dict(), plt_title)
-            print(curr_round, loss_avg, t_loss, test_accuracy[0], best_accuracy)
+            print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
 
     return model

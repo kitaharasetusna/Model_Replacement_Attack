@@ -140,7 +140,7 @@ if configs['load_accs']:
         accs = pickle.load(f) 
         f.close()
     print(accs)
-for epoch_ in range(len(accs), configs['num_epoch']):
+for epoch_ in range(len(accs)*10, configs['num_epoch']):
     G_t = model_global.state_dict()
     list_L_t = []
     

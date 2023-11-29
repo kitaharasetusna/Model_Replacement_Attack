@@ -34,7 +34,7 @@ type_attack: 'scaling'
 # defence settings
 type_defense: 'None'
 
-path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid.pth'
+path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid'
 exp_name: 'FedAVG_cnn_SGD_mnist_SGD_non_iid'
 
 load_idx: True 

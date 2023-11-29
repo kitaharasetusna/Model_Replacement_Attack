@@ -53,11 +53,11 @@ if bool(configs['load_idx'])==False:
         data_num     = data_dist[j].sum()
         data_dist[j][np.random.randint(low=0,high=configs['num_class'])] += ((len(data[0]) - data_num) )
         data_dist    = data_dist.astype('int')
-    with open(folder_idx+'/idxs.pkl', 'wb') as f:
+    with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'wb') as f:
         pickle.dump(data_dist, f)
         f.close()
 else:
-    with open(folder_idx+'/idxs.pkl', 'rb') as f:
+    with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
         data_dist = pickle.load(f)
         f.close()
 
@@ -132,7 +132,7 @@ elif configs['name_model']=='cnn':
 
 if configs['load_model']:
     print('loading model: '+configs['path_ckpt'])
-    model_global.load_state_dict(torch.load(configs['path_ckpt']))
+    model_global.load_state_dict(torch.load(configs['path_ckpt']+'_'+str(configs['degree_non_iid'])+'.pth'))
 
 accs = []
 if configs['load_accs']:

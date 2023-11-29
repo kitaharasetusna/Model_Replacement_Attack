@@ -129,6 +129,16 @@ print('accs', accs)
 for epoch_ in range(len(accs)*configs['time_step'], configs['num_epoch']):
     G_t = model_global.state_dict()
     list_L_t = []
+
+    if (epoch_+1)%configs['time_step'] == 0 or epoch_==0:
+        test_acc = test_model(model_global, dl_train, config=configs) 
+        # train_acc = test_model(model_global, dl_test, config=configs)
+        accs.append(test_acc)
+        print('epoch: '+str(epoch_)+'/'+ str(configs['num_epoch'])+'\ntest acc:', test_acc)
+        torch.save(model_global.state_dict(), configs['path_ckpt'])
+        with open('../idx_'+configs['exp_name']+'_accs.pkl', 'wb') as f:
+            pickle.dump(accs, f) 
+            f.close()
     
     selected_idxs = np.random.randint(0, configs['num_clients'] ,num_selected).tolist()
     print(epoch_%10, ' S: ', selected_idxs)
@@ -144,14 +154,6 @@ for epoch_ in range(len(accs)*configs['time_step'], configs['num_epoch']):
         G_t_1[key] = G_t[key]+ configs['lr_global']*torch.stack([list_L_t[i][key].float() for i in range(num_selected)], dim=0).mean(dim=0)
     model_global.load_state_dict(G_t_1) 
     
-    if (epoch_+1)%configs['time_step'] == 0 or epoch_==0:
-        test_acc = test_model(model_global, dl_train, config=configs) 
-        # train_acc = test_model(model_global, dl_test, config=configs)
-        accs.append(test_acc)
-        print('epoch: '+str(epoch_)+'/'+ str(configs['num_epoch'])+'\ntest acc:', test_acc)
-        torch.save(model_global.state_dict(), configs['path_ckpt'])
-        with open('../idx_'+configs['exp_name']+'_accs.pkl', 'wb') as f:
-            pickle.dump(accs, f) 
-            f.close()
+    
     
 print(accs)

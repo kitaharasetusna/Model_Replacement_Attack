@@ -67,12 +67,12 @@ cd .\examples\
 ## Federated Learning Setting CIFAR-10(non-iid)
 |  Number clients | C (fraction/round) | loal epoch | optimizer| learning rate|
 | :----------- | :------------: | ------------: | ------------: |------------: |
-| 100        |   0.1        |   20       | Adam|1e-4
+| 100        |   0.1        |   5       | Adam|1e-4
 
 
 |  Non-iid | Model | test acc | epochs|
 | :----------- | :------------: | ------------: | ------------: |
-| 0.5        |    ResNet50        |    54.14      | 70|
+| 0.5        |    ResNet50        |    53.09      | 70|
 ```
 cd .\examples\
 ```

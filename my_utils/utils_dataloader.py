@@ -5,29 +5,7 @@ import numpy as np
 
 import os
 
-# TODO: remove this after 5
 def get_ds_cifar10(config: dict = None):
-    path_data = '../data/cifar10' 
-    if not os.path.exists(path_data):
-        os.mkdir(path_data)
-    
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-    std=[0.229, 0.224, 0.225])
-
-
-    ds_train = datasets.CIFAR10(root=path_data, train=True, transform=transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(32, 4), # ->(32, 32)
-            transforms.ToTensor(),
-            normalize]), download=True)
-    
-    ds_test = datasets.CIFAR10(root=path_data, train=False, transform=transforms.Compose([
-        transforms.ToTensor(),
-        normalize,
-    ]))  
-    return ds_train, ds_test
-
-def get_ds_cifar10_2(config: dict = None):
     path_data = '../data/cifar10' 
     if not os.path.exists(path_data):
         os.mkdir(path_data)

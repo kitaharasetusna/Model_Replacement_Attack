@@ -125,6 +125,9 @@ def training(model, ds, data_dict, cifar_data_test,
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
+            with open('../idx_'+config['exp_name']+'_accs.pkl', 'wb') as f:
+                pickle.dump(test_accuracy[-1], f) 
+                f.close()
 
         w, local_loss = [], []
         # Retrieve the number of clients participating in the current training
@@ -187,6 +190,9 @@ def training(model, ds, data_dict, cifar_data_test,
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
+            with open('../idx_'+config['exp_name']+'_accs.pkl', 'wb') as f:
+                pickle.dump(test_accuracy[-1], f) 
+                f.close()
 
     return model
 

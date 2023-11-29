@@ -60,12 +60,15 @@ cd .\examples\
 4_MNIST_sra_fl_non_iid.py
 ```
 ## Federated Learning Setting CIFAR-10(non-iid)
+|  Non-iid | Model | test acc | epochs|
+| :----------- | :------------: | ------------: | ------------: |
+| 0.5        |    ResNet50        |    56.3      | 60|
 use
 ```
 cd .\examples\
 ```
 ```
-5_cifar_10_sra_fl_non_iid.py
+test.py
 ```
 
 ## layer-wise SRA (FL setting)

@@ -38,5 +38,5 @@ path_ckpt: '../FedAVG_resnet18_cifar10_SGD_non_iid.pth'
 exp_name: 'FedAVG_resnet18_SGD_cifar10_SGD_non_iid'
 
 load_idx: True
-load_model: False 
-load_accs: False
+load_model: True 
+load_accs: True

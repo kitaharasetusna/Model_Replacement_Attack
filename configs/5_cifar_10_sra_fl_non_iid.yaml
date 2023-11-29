@@ -34,7 +34,7 @@ type_defense: 'None'
 # path_ckpt: '../FedAVG_resnet18_cifar10_non_iid.pth'
 # exp_name: 'FedAVG_resnet18_cifar10_non_iid'
 # TODO: (3/3)
-path_ckpt: '../FedAVG_resnet18_cifar10_SGD_non_iid.pth'
+path_ckpt: '../FedAVG_resnet18_cifar10_SGD_non_iid'
 exp_name: 'FedAVG_resnet18_SGD_cifar10_SGD_non_iid'
 
 load_idx: True

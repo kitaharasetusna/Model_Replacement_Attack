@@ -186,7 +186,7 @@ def training(model, ds, data_dict, cifar_data_test,
             if best_accuracy < t_accuracy:
                 best_accuracy = t_accuracy
             
-            torch.save(model.state_dict(), config['path_ckpt'])
+            torch.save(model.state_dict(), config['path_ckpt']+'_'+str(config['degree_non_iid'])+'.pth')
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)

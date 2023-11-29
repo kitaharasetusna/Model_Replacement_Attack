@@ -88,8 +88,8 @@ if __name__ == '__main__':
         os.mkdir(folder_idx)
 
     if configs['load_model']:
-        print('loading model: '+configs['path_ckpt'])
-        cifar_cnn.load_state_dict(torch.load(configs['path_ckpt']))
+        print('loading model: ', configs['path_ckpt'])
+        cifar_cnn.load_state_dict(torch.load(configs['path_ckpt']+'_'+str(configs['degree_non_iid'])+'.pth'))
 
     trained_model = training(cifar_cnn, ds_train, data_dict,
                               ds_test, criterion, classes_test, False, config=configs)

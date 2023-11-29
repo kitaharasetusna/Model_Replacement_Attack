@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms 
+import numpy as np
 
 import os
 
@@ -88,6 +89,66 @@ class Non_iid(Dataset):
         y = self.y_data[idx]
         return x, y 
 
+def iid_partition(dataset, clients):
+    """
+    I.I.D paritioning of data over clients
+    Shuffle the data
+    Split it between clients
+
+    params:
+      - dataset (torch.utils.Dataset): Dataset containing the Images
+      - clients (int): Number of Clients to split the data between
+
+    returns:
+      - Dictionary of image indexes for each client
+    """
+
+    num_items_per_client = int(len(dataset) / clients)
+    client_dict = {}
+    image_idxs = [i for i in range(len(dataset))]
+
+    for i in range(clients):
+        client_dict[i] = set(np.random.choice(image_idxs, num_items_per_client, replace=False))
+        image_idxs = list(set(image_idxs) - client_dict[i])
+
+    return client_dict
+
+
+def non_iid_partition(dataset, n_nets, alpha):
+    """
+        :param dataset: dataset name
+        :param n_nets: number of clients
+        :param alpha: beta parameter of the Dirichlet distribution
+        :return: dictionary containing the indexes for each client
+    """
+    y_train = np.array(dataset.targets)
+    min_size = 0
+    K = 10
+    N = y_train.shape[0]
+    net_dataidx_map = {}
+
+    while min_size < 10:
+        idx_batch = [[] for _ in range(n_nets)]
+        # for each class in the dataset
+        for k in range(K):
+            idx_k = np.where(y_train == k)[0]
+            np.random.shuffle(idx_k)
+            proportions = np.random.dirichlet(np.repeat(alpha, n_nets))
+            ## Balance
+            proportions = np.array([p * (len(idx_j) < N / n_nets) for p, idx_j in zip(proportions, idx_batch)])
+            proportions = proportions / proportions.sum()
+            proportions = (np.cumsum(proportions) * len(idx_k)).astype(int)[:-1]
+            idx_batch = [idx_j + idx.tolist() for idx_j, idx in zip(idx_batch, np.split(idx_k, proportions))]
+            min_size = min([len(idx_j) for idx_j in idx_batch])
+
+    for j in range(n_nets):
+        np.random.shuffle(idx_batch[j])
+        net_dataidx_map[j] = np.array(idx_batch[j])
+
+    # net_dataidx_map is a dictionary of length #of clients: {key: int, value: [list of indexes mapping the data among the workers}
+    # traindata_cls_counts is a dictionary of length #of clients, basically assesses how the different labels are distributed among
+    # the client, counting the total number of examples per class in each client.
+    return net_dataidx_map
 
 if __name__ == "__main__":
     test_get_ds_cifar10()

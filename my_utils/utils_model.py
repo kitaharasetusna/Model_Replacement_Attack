@@ -2,6 +2,17 @@ import PIL.Image as Image
 import math
 import copy
 import numpy as np
+import torch.nn as nn
+
+class MyGroupNorm(nn.Module):
+    def __init__(self, num_channels):
+        super(MyGroupNorm, self).__init__()
+        self.norm = nn.GroupNorm(num_groups=2, num_channels=num_channels,
+                                 eps=1e-5, affine=True)
+
+    def forward(self, x):
+        x = self.norm(x)
+        return x
 
 def plant_triggers(inputs, trigger, config: dict):
     poisoned_portion, pos, device = config["portion_pois"], config["pos"], config['device']

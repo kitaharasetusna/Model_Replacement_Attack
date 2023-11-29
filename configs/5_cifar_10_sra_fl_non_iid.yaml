@@ -9,14 +9,15 @@ test_batch_size: 128
 # FL settings
 num_clients: 100
 degree_non_iid: 0.5 # non-iid
+
 num_epoch: 100
 C: 0.1
 lr_global: 1 
-time_step: 10
+time_step: 2
 
 epoch_local: 20
 optim_local: 'Adam'
-lr_local: 0.001
+lr_local: 0.0001
 
 # model settings
 name_model: 'cifar10_resnet'

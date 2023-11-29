@@ -56,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('--clientlr', type=float, default=0.0001)
     parser.add_argument('--sch_flag', default=False)
 
-    path_config = '../configs/4_mnist_sra_fl_non_iid.yaml'
+    path_config = '../configs/5_cifar_10_sra_fl_non_iid.yaml'
     configs = get_dict_from_yaml(path=path_config)
     print(configs)
 

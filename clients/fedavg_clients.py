@@ -72,6 +72,7 @@ class Benign_clients_2(object):
     def train(self, model):
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr_)
+        lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
         for epoch in range(1, self.E_ + 1):
             model.train()
             for data, labels in self.dl_:
@@ -84,5 +85,6 @@ class Benign_clients_2(object):
                 loss.backward()
                 # perform a single optimization step
                 optimizer.step()
+                lr_schedular.step()
 
         return model.state_dict() 

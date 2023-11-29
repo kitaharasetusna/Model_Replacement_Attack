@@ -11,7 +11,7 @@ num_epoch: 1000
 
 num_clients: 100
 # degree_non_iid: 0.1 # non-iid
-degree_non_iid: 0.1 # non-iid
+degree_non_iid: 0.3 # non-iid
 
 C: 0.1 # ratio of selected clients
 lr_global: 1 
@@ -38,5 +38,5 @@ path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid.pth'
 exp_name: 'FedAVG_cnn_SGD_mnist_SGD_non_iid'
 
 load_idx: True 
-load_model: True 
-load_accs: True 
+load_model: False 
+load_accs: False 

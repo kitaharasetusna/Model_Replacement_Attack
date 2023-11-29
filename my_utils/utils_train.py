@@ -192,6 +192,9 @@ def training(model, ds, data_dict, cifar_data_test,
 
 
 def testing(model, dataset, bs, criterion, num_classes, classes):
+    total_ = 0
+    correct_ = 0 
+
     # test loss
     test_loss = 0.0
     correct_class = list(0. for i in range(num_classes))
@@ -211,6 +214,11 @@ def testing(model, dataset, bs, criterion, num_classes, classes):
 
         _, pred = torch.max(output, 1)
 
+
+        # _, predicted = torch.max(outputs.data, 1)
+        total_ += labels.size(0)
+        correct_ += (pred == labels).sum().item()
+
         correct_tensor = pred.eq(labels.data.view_as(pred))
         correct = np.squeeze(correct_tensor.numpy()) if not torch.cuda.is_available() else np.squeeze(
             correct_tensor.cpu().numpy())
@@ -223,5 +231,8 @@ def testing(model, dataset, bs, criterion, num_classes, classes):
 
     # avg test loss
     test_loss = test_loss / len(test_loader.dataset)
+
+    
+    print(100 * correct_/total_)
 
     return 100. * np.sum(correct_class) / np.sum(total_class), test_loss

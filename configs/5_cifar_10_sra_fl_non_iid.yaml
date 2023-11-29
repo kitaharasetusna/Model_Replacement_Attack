@@ -11,12 +11,12 @@ non_iid: True
 num_clients: 100
 degree_non_iid: 0.5 # non-iid
 
-num_epoch: 150
+num_epoch: 300
 C: 0.1
 lr_global: 1 
 time_step: 5
 
-epoch_local: 20
+epoch_local: 5
 optim_local: 'Adam'
 lr_local: 0.0001
 

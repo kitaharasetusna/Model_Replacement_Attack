@@ -19,11 +19,10 @@ with open('../idx_'+configs['exp_name']+'_accs.pkl', 'rb') as f:
     test_accuracy = pickle.load(f) 
     f.close()
 print(test_accuracy)
-test_accuracy = list(test_accuracy)
+
 train_accs =[]
 test_accs = []
-for (train_acc, test_acc) in test_accuracy:
-    train_accs.append(train_acc)
+for test_acc in test_accuracy:
     test_accs.append(test_acc)
 print(train_accs)
 print(test_accs)

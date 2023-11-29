@@ -72,8 +72,9 @@ class Benign_clients_2(object):
     def train(self, model):
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr_)
-        lr_schedular = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5) 
         for epoch in range(1, self.E_ + 1):
+            train_loss = 0.0
             model.train()
             for data, labels in self.dl_:
                 data, labels = data.to(self.device_), labels.to(self.device_)
@@ -85,6 +86,7 @@ class Benign_clients_2(object):
                 loss.backward()
                 # perform a single optimization step
                 optimizer.step()
-                lr_schedular.step()
+                train_loss += loss.item() * data.size(0)
+                scheduler.step(train_loss)
 
         return model.state_dict() 

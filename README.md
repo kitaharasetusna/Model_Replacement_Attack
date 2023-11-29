@@ -1,6 +1,11 @@
 # Model Replacement Attack
+This is a federated learnig repo for the research purpose.
+It includes Fl framwork for MNIST(non-iid/iid), CIFAR-10(non-iid/iid)
 
+This repo is aimed at making benchmarks for before/after attacks.
 # About this project
+
+
 In this repo, I reimplemented 'Adversarial Weight Attack Paradigm' based model replacement attacks to learn backdoor attacks on a fine-grained scale.
 
 To do the benchmakr, I also plan to reimplemente some other attacks and defense on both centrailized and the FL setting.
@@ -60,6 +65,11 @@ cd .\examples\
 4_MNIST_sra_fl_non_iid.py
 ```
 ## Federated Learning Setting CIFAR-10(non-iid)
+|  Number clients | C (fraction/round) | loal epoch | optimizer| learning rate|
+| :----------- | :------------: | ------------: | ------------: |------------: |
+| 100        |   0.1        |   20       | Adam|1e-4
+
+
 |  Non-iid | Model | test acc | epochs|
 | :----------- | :------------: | ------------: | ------------: |
 | 0.5        |    ResNet50        |    56.3      | 60|

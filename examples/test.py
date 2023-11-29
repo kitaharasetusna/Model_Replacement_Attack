@@ -82,5 +82,14 @@ if __name__ == '__main__':
     
     cifar_cnn.cuda()
 
+    folder_idx = '../idx_'+configs['exp_name']
+    import os
+    if not os.path.exists(folder_idx):
+        os.mkdir(folder_idx)
+
+    if configs['load_model']:
+        print('loading model: '+configs['path_ckpt'])
+        cifar_cnn.load_state_dict(torch.load(configs['path_ckpt']))
+
     trained_model = training(cifar_cnn, ds_train, data_dict,
                               ds_test, criterion, classes_test, False, config=configs)

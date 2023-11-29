@@ -4,6 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import time
 import numpy as np
 import copy
+import pickle
 
 class CustomDataset(Dataset):
     def __init__(self, dataset, idxs):
@@ -99,13 +100,19 @@ def training(model, ds, data_dict, cifar_data_test,
     train_loss = []
     test_loss = []
     test_accuracy = []
+
+    if config['load_accs']:
+        with open('../idx_'+config['exp_name']+'_accs.pkl', 'rb') as f:
+            test_accuracy = pickle.load(f) 
+            f.close()
+        print('accs', test_accuracy)
     best_accuracy = 0
     # measure time
     start = time.time()
     E = config['epoch_local']
     lr = config['lr_local']
 
-    for curr_round in range(1, config['num_epoch'] + 1):
+    for curr_round in range(1+len(test_accuracy)*config['time_step'], config['num_epoch'] + 1):
         if curr_round == 1:
             t_accuracy, t_loss = testing(model, cifar_data_test, 
                                          config['test_batch_size'], criterion,
@@ -175,6 +182,8 @@ def training(model, ds, data_dict, cifar_data_test,
 
             if best_accuracy < t_accuracy:
                 best_accuracy = t_accuracy
+            
+            torch.save(model.state_dict(), config['path_ckpt'])
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)

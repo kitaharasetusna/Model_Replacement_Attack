@@ -126,7 +126,7 @@ def training(model, ds, data_dict, cifar_data_test,
             print(curr_round, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
             with open('../idx_'+config['exp_name']+'_accs.pkl', 'wb') as f:
-                pickle.dump(test_accuracy[-1], f) 
+                pickle.dump(test_accuracy, f) 
                 f.close()
 
         w, local_loss = [], []
@@ -191,7 +191,7 @@ def training(model, ds, data_dict, cifar_data_test,
             print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
             with open('../idx_'+config['exp_name']+'_accs.pkl', 'wb') as f:
-                pickle.dump(test_accuracy[-1], f) 
+                pickle.dump(test_accuracy, f) 
                 f.close()
 
     return model

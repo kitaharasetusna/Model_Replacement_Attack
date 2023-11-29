@@ -77,7 +77,7 @@ cd .\examples\
 cd .\examples\
 ```
 ```
-test.py
+python 5_cifar10_fl_non_iid.py
 ```
 
 ## layer-wise SRA (FL setting)

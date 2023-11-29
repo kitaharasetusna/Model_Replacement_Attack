@@ -17,7 +17,7 @@ time_step: 5
 
 epoch_local: 20
 optim_local: 'Adam'
-lr_local: 0.0001
+lr_local: 0.00003
 
 # model settings
 name_model: 'cifar10_resnet'
@@ -37,5 +37,5 @@ path_ckpt: '../FedAVG_resnet18_cifar10_SGD_non_iid.pth'
 exp_name: 'FedAVG_resnet18_SGD_cifar10_SGD_non_iid'
 
 load_idx: True 
-load_model: True 
+load_model: True
 load_accs: True

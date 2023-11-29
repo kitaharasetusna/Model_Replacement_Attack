@@ -119,6 +119,17 @@ def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, p
     start = time.time()
 
     for curr_round in range(1, rounds + 1):
+        if curr_round == 0:
+            t_accuracy, t_loss = testing(model, cifar_data_test, test_batch_size, criterion, num_classes, classes_test)
+            test_accuracy.append(t_accuracy)
+            test_loss.append(t_loss)
+
+            if best_accuracy < t_accuracy:
+                best_accuracy = t_accuracy
+            # torch.save(model.state_dict(), plt_title)
+            print(curr_round, loss_avg, t_loss, test_accuracy[0], best_accuracy)
+            # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
+
         w, local_loss = [], []
         # Retrieve the number of clients participating in the current training
         m = max(int(C * K), 1)
@@ -165,17 +176,18 @@ def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, p
         # print('Round: {}... \tAverage Loss: {}'.format(curr_round, round(loss_avg, 3)), lr)
         train_loss.append(loss_avg)
 
-        t_accuracy, t_loss = testing(model, cifar_data_test, test_batch_size, criterion, num_classes, classes_test)
-        test_accuracy.append(t_accuracy)
-        test_loss.append(t_loss)
+        if curr_round%10 == 0:
+            t_accuracy, t_loss = testing(model, cifar_data_test, test_batch_size, criterion, num_classes, classes_test)
+            test_accuracy.append(t_accuracy)
+            test_loss.append(t_loss)
 
-        if best_accuracy < t_accuracy:
-            best_accuracy = t_accuracy
-        # torch.save(model.state_dict(), plt_title)
-        print(curr_round, loss_avg, t_loss, test_accuracy[0], best_accuracy)
-        # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
+            if best_accuracy < t_accuracy:
+                best_accuracy = t_accuracy
+            # torch.save(model.state_dict(), plt_title)
+            print(curr_round, loss_avg, t_loss, test_accuracy[0], best_accuracy)
+            # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
 
-        return model
+    return model
 
 
 def testing(model, dataset, bs, criterion, num_classes, classes):

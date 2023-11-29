@@ -132,9 +132,9 @@ for epoch_ in range(len(accs)*configs['time_step'], configs['num_epoch']):
 
     if (epoch_+1)%configs['time_step'] == 0 or epoch_==0:
         test_acc = test_model(model_global, dl_train, config=configs) 
-        # train_acc = test_model(model_global, dl_test, config=configs)
-        accs.append(test_acc)
-        print('epoch: '+str(epoch_)+'/'+ str(configs['num_epoch'])+'\ntest acc:', test_acc)
+        train_acc = test_model(model_global, dl_test, config=configs)
+        accs.append((test_acc, train_acc))
+        print('epoch: '+str(epoch_)+'/'+ str(configs['num_epoch'])+'\ntest acc:', test_acc, ' train acc: ', train_acc)
         torch.save(model_global.state_dict(), configs['path_ckpt'])
         with open('../idx_'+configs['exp_name']+'_accs.pkl', 'wb') as f:
             pickle.dump(accs, f) 
@@ -148,10 +148,17 @@ for epoch_ in range(len(accs)*configs['time_step'], configs['num_epoch']):
         L_i = local_update.train(model=copy.deepcopy(model_global))
         list_L_t.append(L_i)
     
-    G_t_1 = {}
+    # G_t_1 = {}
             
-    for key in list_L_t[0].keys():
-        G_t_1[key] = G_t[key]+ configs['lr_global']*torch.stack([list_L_t[i][key].float() for i in range(num_selected)], dim=0).mean(dim=0)
+    # for key in list_L_t[0].keys():
+    #     G_t_1[key] = G_t[key]+ configs['lr_global']*torch.stack([list_L_t[i][key].float() for i in range(num_selected)], dim=0).mean(dim=0)
+    G_t_1 = copy.deepcopy(list_L_t[0])
+    for k in G_t_1.keys():
+        for i in range(1, len(list_L_t)):
+            G_t_1[k]+=list_L_t[i][k]
+        G_t_1[k] = torch.div(G_t_1[k], len(list_L_t))
+
+     
     model_global.load_state_dict(G_t_1) 
     
     

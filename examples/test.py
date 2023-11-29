@@ -13,7 +13,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import resnet
 from torch.utils.data import Dataset, DataLoader
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms, utils, datasets
 from argparse import ArgumentParser
 from torchvision import transforms as tt
@@ -33,17 +33,13 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
 """## Partitioning the Data (IID and non-IID)"""
-
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
 from my_utils.utils_model import MyGroupNorm
 from my_utils.utils_train import training, testing
 from my_utils.utils_dataloader import non_iid_partition, iid_partition
-
-"""## Testing Loop"""
-
-
-
+from my_utils.utils_dataloader import get_ds_cifar10, Non_iid, get_ds_mnist
+from my_utils.utils_reading_disks import get_dict_from_yaml
 
 if __name__ == '__main__':
 
@@ -52,13 +48,17 @@ if __name__ == '__main__':
     parser.add_argument('--partition', default="noniid")
     parser.add_argument('--client_number', default=100)
     parser.add_argument('--alpha_partition', default=0.5)
-    parser.add_argument('--commrounds', type=int, default=100)
+    parser.add_argument('--commrounds', type=int, default=150)
     parser.add_argument('--clientfr', type=float, default=0.1)
     parser.add_argument('--numclient', type=int, default=100)
     parser.add_argument('--clientepochs', type=int, default=20)
     parser.add_argument('--clientbs', type=int, default=64)
     parser.add_argument('--clientlr', type=float, default=0.0001)
     parser.add_argument('--sch_flag', default=False)
+
+    path_config = '../configs/4_mnist_sra_fl_non_iid.yaml'
+    configs = get_dict_from_yaml(path=path_config)
+    print(configs)
 
     args = parser.parse_args()
     

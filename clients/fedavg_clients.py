@@ -77,6 +77,8 @@ class Benign_clients_2(object):
             train_loss = 0.0
             model.train()
             for data, labels in self.dl_:
+                if data.size()[0] < 2:
+                    continue
                 data, labels = data.to(self.device_), labels.to(self.device_)
                 optimizer.zero_grad()
                 output = model(data)

@@ -11,7 +11,7 @@ configs = get_dict_from_yaml(path=path_config)
 print(configs)
 
 folder_idx = '../idx_'+configs['exp_name']
-with open(folder_idx+'/idxs.pkl', 'rb') as f:
+with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
     data_dict = pickle.load(f)
     f.close()
 

@@ -58,7 +58,7 @@ if __name__ == '__main__':
         os.mkdir(folder_idx)
     if configs['load_idx']==True:
         print('loading from prev idx')
-        with open(folder_idx+'/idxs.pkl', 'rb') as f:
+        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
             data_dict = pickle.load(f)
             f.close()
     else:
@@ -70,7 +70,7 @@ if __name__ == '__main__':
             data_dict = non_iid_partition(ds_train, configs['num_clients'], configs['degree_non_iid'])
         else:
             data_dict = iid_partition(ds_train, 100)  # Uncomment for idd_partition
-        with open(folder_idx+'/idxs.pkl', 'wb') as f:
+        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'wb') as f:
             pickle.dump(data_dict, f)
             f.close()
     # ---------------------------------------------------------------------------------------------------

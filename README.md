@@ -72,7 +72,7 @@ cd .\examples\
 
 |  Non-iid | Model | test acc | epochs|
 | :----------- | :------------: | ------------: | ------------: |
-| 0.5        |    ResNet50        |    53.09      | 70|
+| 0.5        |    ResNet50        |    60      | 130|
 ```
 cd .\examples\
 ```

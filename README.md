@@ -54,8 +54,7 @@ python .\2_cifar_10_non_iid.py
 ## Federated Learning Setting MNIST(non-iid)
 |  Non-iid | Model | test acc | epochs|
 | :----------- | :------------: | ------------: | ------------: |
-| 0.01        |    CNN MNIST        |    93.42       | 400|
-| 0.5        |    CNN MNIST        |    97.32       | 400|
+| 0.1        |    CNN MNIST        |    94.76       | 400|
 
 use 
 ```

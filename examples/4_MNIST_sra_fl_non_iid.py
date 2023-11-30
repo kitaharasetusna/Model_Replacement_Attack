@@ -136,7 +136,7 @@ if configs['load_model']:
 
 accs = []
 if configs['load_accs']:
-    with open('../idx_'+configs['exp_name']+'_accs.pkl', 'rb') as f:
+    with open('../idx_'+configs['exp_name']+'_accs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
         accs = pickle.load(f) 
         f.close()
     print(accs)
@@ -161,8 +161,8 @@ for epoch_ in range(len(accs)*10, configs['num_epoch']):
         train_acc = test_model(model_global, dl_test, config=configs)
         accs.append((train_acc, test_acc))
         print('epoch: '+str(epoch_)+'/'+ str(configs['num_epoch'])+'\ntest acc:', test_acc, '\ntrain acc: ', train_acc)
-        torch.save(model_global.state_dict(), configs['path_ckpt'])
-        with open('../idx_'+configs['exp_name']+'_accs.pkl', 'wb') as f:
+        torch.save(model_global.state_dict(), configs['path_ckpt']+'_'+str(configs['degree_non_iid'])+'.pth') 
+        with open('../idx_'+configs['exp_name']+'_accs_'+str(configs['degree_non_iid'])+'.pkl', 'wb') as f:
             pickle.dump(accs, f) 
             f.close()
     

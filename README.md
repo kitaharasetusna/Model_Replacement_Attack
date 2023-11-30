@@ -51,7 +51,7 @@ cd .\examples\
 python .\2_cifar_10_non_iid.py
 ```
 
-## Federated Learning Setting MNIST(non-iid)
+## [Federated Learning Setting MNIST(non-iid)](./examples/4_MNIST_sra_fl_non_iid.py)
 |  Non-iid | Model | test acc | epochs|
 | :----------- | :------------: | ------------: | ------------: |
 | 0.1        |    CNN MNIST        |    94.76       | 400|
@@ -63,7 +63,7 @@ cd .\examples\
 ```
 4_MNIST_sra_fl_non_iid.py
 ```
-## Federated Learning Setting CIFAR-10(non-iid)
+## [Federated Learning Setting CIFAR-10(non-iid)](./examples/5_cifar10_fl_non_iid.py)
 |  Number clients | C (fraction/round) | loal epoch | optimizer| learning rate|
 | :----------- | :------------: | ------------: | ------------: |------------: |
 | 100        |   0.1        |   5       | Adam|1e-4

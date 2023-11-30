@@ -102,7 +102,7 @@ def training(model, ds, data_dict, cifar_data_test,
     test_accuracy = []
 
     if config['load_accs']:
-        with open('../idx_'+config['exp_name']+'_accs.pkl', 'rb') as f:
+        with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'rb') as f:
             test_accuracy = pickle.load(f) 
             f.close()
         print('accs', test_accuracy)
@@ -125,7 +125,7 @@ def training(model, ds, data_dict, cifar_data_test,
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
-            with open('../idx_'+config['exp_name']+'_accs.pkl', 'wb') as f:
+            with open('../idx_'+config['exp_name']+'_accs_'+config['degree_non_iid']+'.pkl', 'wb') as f:
                 pickle.dump(test_accuracy, f) 
                 f.close()
 
@@ -190,7 +190,7 @@ def training(model, ds, data_dict, cifar_data_test,
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
-            with open('../idx_'+config['exp_name']+'_accs.pkl', 'wb') as f:
+            with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
                 pickle.dump(test_accuracy, f) 
                 f.close()
 

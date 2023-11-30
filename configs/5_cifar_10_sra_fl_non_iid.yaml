@@ -7,9 +7,9 @@ train_batch_size: 64
 test_batch_size: 128
 
 # FL settings
-non_iid: True
+non_iid: False
 num_clients: 100
-degree_non_iid: 0.5 # non-iid
+degree_non_iid: 0.0 # non-iid
 
 num_epoch: 300
 C: 0.1
@@ -38,5 +38,5 @@ path_ckpt: '../FedAVG_resnet18_cifar10_SGD_non_iid'
 exp_name: 'FedAVG_resnet18_SGD_cifar10_SGD_non_iid'
 
 load_idx: True
-load_model: True 
+load_model: True
 load_accs: True

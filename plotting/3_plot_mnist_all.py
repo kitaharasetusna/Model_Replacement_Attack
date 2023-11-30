@@ -37,22 +37,22 @@ for degree_non_iid in degree_non_iids:
     print(class_counts, np.sum(class_counts))
     
 
-    with open('../idx_'+configs['exp_name']+'_accs_'+str(degree_non_iid)+'.pkl', 'rb') as f:
-        test_accuracy = pickle.load(f) 
-        f.close()
-    print(test_accuracy)
+    # with open('../idx_'+configs['exp_name']+'_accs_'+str(degree_non_iid)+'.pkl', 'rb') as f:
+    #     test_accuracy = pickle.load(f) 
+    #     f.close()
+    # print(test_accuracy)
 
-    train_accs =[]
-    test_accs = []
-    for tarin_acc, test_acc in test_accuracy:
-        test_accs.append(test_acc)
-    print(train_accs)
-    print(test_accs)
+    # train_accs =[]
+    # test_accs = []
+    # for tarin_acc, test_acc in test_accuracy:
+    #     test_accs.append(test_acc)
+    # print(train_accs)
+    # print(test_accs)
 
 
-    t = range(0, len(test_accs)*configs['time_step'], configs['time_step'])
-    plt.figure(figsize=(5, 4))
-    plt.plot(t, test_accs)
-    plt.xlabel('epoch')
-    plt.ylabel('accuracy (%)')
-    plt.show()
+    # t = range(0, len(test_accs)*configs['time_step'], configs['time_step'])
+    # plt.figure(figsize=(5, 4))
+    # plt.plot(t, test_accs)
+    # plt.xlabel('epoch')
+    # plt.ylabel('accuracy (%)')
+    # plt.show()

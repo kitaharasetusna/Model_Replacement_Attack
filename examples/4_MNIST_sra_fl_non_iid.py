@@ -10,7 +10,7 @@ import random
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
 
-from my_utils.utils_dataloader import get_ds_cifar10, Non_iid, get_ds_mnist, iid_partition
+from my_utils.utils_dataloader import get_ds_cifar10, Non_iid, get_ds_mnist, iid_partition, non_iid_partition
 from my_utils.utils_reading_disks import get_dict_from_yaml
 from clients.fedavg_clients import Benign_clients
 from models.cifar10.models import CNN_CIFAR10, CNN_MNIST
@@ -39,8 +39,9 @@ idx   = [ torch.where(torch.from_numpy(np.array(ds_train.targets)) == i) for i i
 data  = [ ds_train.data[idx[i][0]] for i in range(configs['num_class']) ]
 label = [ torch.ones(len(data[i]))* i for i in range(configs['num_class'])]
 
-# (num clients, num_class)
-s = np.random.dirichlet(np.ones(configs['num_class'])*configs['degree_non_iid'], configs['num_clients'])
+if configs['non_iid'] == True:
+    # (num clients, num_class)
+    s = np.random.dirichlet(np.ones(configs['num_class'])*configs['degree_non_iid'], configs['num_clients'])
 # (number of clients, num of classes)
 data_dist = np.zeros((configs['num_clients'], configs['num_class']))
 
@@ -56,49 +57,23 @@ if not os.path.exists(folder_idx):
     os.mkdir(folder_idx)
 # row i: for clients i, number for each class
 if configs['non_iid'] == True:
-    if bool(configs['load_idx'])==False:
-        for j in range(configs['num_clients']):
-            # num of samples selected for a given class
-            data_dist[j] = ((s[j]*len(data[0])).astype('int') / 
-                            (s[j]*len(data[0])).astype('int').sum() * len(data[0])).astype('int')
-            data_num     = data_dist[j].sum()
-            data_dist[j][np.random.randint(low=0,high=configs['num_class'])] += ((len(data[0]) - data_num) )
-            data_dist    = data_dist.astype('int')
-        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'wb') as f:
-            pickle.dump(data_dist, f)
-            f.close()
-    else:
-        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
-            data_dist = pickle.load(f)
-            f.close()
-
-
-    # TODO: you can save this part to repeat the experiment
-    print(data_dist)
-
-
     X = []
     Y = []
-    for j in range(configs['num_clients']):
-        x_data = []
-        y_data = []
-        for i in range(configs['num_class']):
-            if data_dist[j][i] != 0:
-                
-                if bool(configs['load_idx'])==False:
-                    d_index = np.random.randint(low=0, high=len(data[i]), size=data_dist[j][i])
-                    with open(folder_idx+'/'+str(j)+'_'+str(i)+''+'.pkl', 'wb') as f:
-                        pickle.dump(d_index, f)
-                        f.close()
-                else:
-                    
-                    if os.path.exists(folder_idx+'/'+str(j)+'_'+str(i)+''+'.pkl'):
-                        with open(folder_idx+'/'+str(j)+'_'+str(i)+''+'.pkl', 'rb') as f:
-                            d_index = pickle.load(f)
-                x_data.append(data[i][d_index])
-                y_data.append(label[i][d_index])
-        X.append(torch.cat(x_data))
-        Y.append(torch.cat(y_data))
+    if configs['load_idx']:
+        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
+            data_dict = pickle.load(f)
+            f.close()
+    else:
+        data_dict = non_iid_partition(ds_train, configs['num_clients'], configs['degree_non_iid'])
+        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'wb') as f:
+            pickle.dump(data_dict, f)
+            f.close()
+    print(type(data_dict[0]))
+    for idx_client in range(len(data_dict)):
+        x_data = ds_train.data[list(data_dict[idx_client])]
+        y_data = ds_train.targets[list(data_dict[idx_client])]
+        X.append(x_data)
+        Y.append(y_data) 
 else:
     X = []
     Y = []

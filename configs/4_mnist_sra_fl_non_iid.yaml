@@ -9,7 +9,7 @@ test_batch_size: 64
 # FL settings
 num_epoch: 400
 
-non_iid: False
+non_iid: True
 num_clients: 100
 # degree_non_iid: 0.1 # non-iid
 degree_non_iid: 0.1 # non-iid
@@ -38,6 +38,6 @@ type_defense: 'None'
 path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid'
 exp_name: 'FedAVG_cnn_SGD_mnist_SGD_non_iid'
 
-load_idx: True 
-load_model: True 
-load_accs: True
+load_idx: False 
+load_model: False 
+load_accs: False

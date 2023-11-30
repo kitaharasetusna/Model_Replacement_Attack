@@ -28,7 +28,7 @@ import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
 from my_utils.utils_model import MyGroupNorm
 from my_utils.utils_train import training, testing
-from my_utils.utils_dataloader import non_iid_partition_2, non_iid_partition, iid_partition
+from my_utils.utils_dataloader import non_iid_partition, iid_partition
 from my_utils.utils_dataloader import get_ds_cifar10 
 from my_utils.utils_reading_disks import get_dict_from_yaml
 
@@ -67,17 +67,17 @@ if __name__ == '__main__':
         if configs['non_iid'] == True:
         # (dataset, clients, total_shards, shards_size, num_shards_per_client):
         # alpha for the Dirichlet distribution
-            data_dict = non_iid_partition_2(ds_train, configs)
+            # data_dict = non_iid_partition_2(ds_train, configs)
             data_dict_2 = non_iid_partition(ds_train, configs['num_clients'], configs['degree_non_iid'])
-            print(len(data_dict), len(data_dict_2), data_dict[0].shape, data_dict_2[90].shape)
-            import sys; sys.exit()
+            # print(len(data_dict), len(data_dict_2), data_dict[0].shape, data_dict_2[90].shape)
+            # import sys; sys.exit()
         else:
             data_dict = iid_partition(ds_train, 100)  # Uncomment for idd_partition
         with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'wb') as f:
             pickle.dump(data_dict, f)
             f.close()
     # ---------------------------------------------------------------------------------------------------
-
+    print(data_dict); import sys; sys.exit()
 
     
     cifar_cnn = resnet.ResNet(resnet.Bottleneck, [3, 4, 6, 3], num_classes=10, zero_init_residual=False, groups=1,

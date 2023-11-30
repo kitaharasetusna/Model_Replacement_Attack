@@ -5,6 +5,7 @@ import numpy as np
 import copy
 import torchvision
 import pickle
+import random
 
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
@@ -15,6 +16,15 @@ from clients.fedavg_clients import Benign_clients
 from models.cifar10.models import CNN_CIFAR10, CNN_MNIST
 from models.cifar10.models import resnet18 
 from my_utils.utils_train import test_model
+
+# set manual seed for reproducibility
+seed = 42
+
+# general reproducibility
+random.seed(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+
 
 path_config = '../configs/4_mnist_sra_fl_non_iid.yaml'
 configs = get_dict_from_yaml(path=path_config)

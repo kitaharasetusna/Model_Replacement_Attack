@@ -15,7 +15,7 @@ with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
     data_dict = pickle.load(f)
     f.close()
 
-with open('../idx_'+configs['exp_name']+'_accs.pkl', 'rb') as f:
+with open('../idx_'+configs['exp_name']+'_accs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
     test_accuracy = pickle.load(f) 
     f.close()
 print(test_accuracy)

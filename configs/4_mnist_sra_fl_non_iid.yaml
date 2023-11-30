@@ -9,18 +9,18 @@ test_batch_size: 64
 # FL settings
 num_epoch: 300
 
-non_iid: True 
-# non_iid: False
+# non_iid: True 
+non_iid: False
 num_clients: 64 
 # degree_non_iid: 0.1 # non-iid
-degree_non_iid: 0.1 # non-iid
-# degree_non_iid: 0.0 # non-iid
+# degree_non_iid: 0.1 # non-iid
+degree_non_iid: 0.0 # non-iid
 
 C: 0.25 # ratio of selected clients
 lr_global: 1 
 time_step: 10
 
-epoch_local: 5
+epoch_local: 2
 optim_local: 'Adam'
 # optim_local: 'SGD'
 mom_local: 0.9
@@ -40,6 +40,10 @@ type_defense: 'None'
 path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid'
 exp_name: 'FedAVG_cnn_SGD_mnist_SGD_non_iid'
 
-load_idx: False 
-load_model: False 
-load_accs: False
+load_idx: True 
+load_model: True 
+load_accs: True
+
+# load_idx: False 
+# load_model: False
+# load_accs: False

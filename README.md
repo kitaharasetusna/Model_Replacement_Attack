@@ -54,12 +54,13 @@ python .\2_cifar_10_non_iid.py
 ## [Federated Learning Setting MNIST(non-iid)](./examples/4_MNIST_sra_fl_non_iid.py)
 |  Number clients | C (fraction/round) | loal epoch | optimizer| learning rate|
 | :----------- | :------------: | ------------: | ------------: |------------: |
-| 64        |   0.25        |   1       | Adam|1e-4
+| 64        |   0.25        |   2       | Adam|1e-3
 
 
 |  Non-iid | Model | test acc | epochs|
 | :----------- | :------------: | ------------: | ------------: |
-| IID       |    CNN MNIST        |    87.74       | 300|
+| IID       |    CNN MNIST        |    81.38       | 300|
+| 0.1       |    CNN MNIST        |    58.57       | 300|
 
 use 
 ```

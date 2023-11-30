@@ -28,6 +28,9 @@ print(train_accs)
 print(test_accs)
 
 
+t = range(0, len(test_accs)*configs['time_step'], configs['time_step'])
 plt.figure(figsize=(5, 4))
-plt.plot(test_accs)
+plt.plot(t, test_accs)
+plt.xlabel('epoch')
+plt.ylabel('accuracy (%)')
 plt.show()

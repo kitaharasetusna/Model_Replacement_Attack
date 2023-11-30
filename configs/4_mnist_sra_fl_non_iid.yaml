@@ -7,11 +7,12 @@ train_batch_size: 64
 test_batch_size: 64
 
 # FL settings
-num_epoch: 1000
+num_epoch: 400
 
+non_iid: False
 num_clients: 100
 # degree_non_iid: 0.1 # non-iid
-degree_non_iid: 0.3 # non-iid
+degree_non_iid: 0.1 # non-iid
 
 C: 0.1 # ratio of selected clients
 lr_global: 1 
@@ -34,9 +35,9 @@ type_attack: 'scaling'
 # defence settings
 type_defense: 'None'
 
-path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid.pth'
+path_ckpt: '../FedAVG_cnn_SGD_mnist_SGD_non_iid'
 exp_name: 'FedAVG_cnn_SGD_mnist_SGD_non_iid'
 
 load_idx: True 
-load_model: False 
-load_accs: False 
+load_model: True 
+load_accs: True

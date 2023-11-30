@@ -9,10 +9,10 @@ test_batch_size: 64
 # FL settings
 num_epoch: 400
 
-non_iid: True
+non_iid: False
 num_clients: 100
 # degree_non_iid: 0.1 # non-iid
-degree_non_iid: 0.1 # non-iid
+degree_non_iid: 0.0 # non-iid
 
 C: 0.1 # ratio of selected clients
 lr_global: 1 

@@ -35,7 +35,7 @@ from my_utils.utils_reading_disks import get_dict_from_yaml
 if __name__ == '__main__':
 
     # -------------------------------------- 0. load config ------------------
-    path_config = '../configs/5_cifar_10_sra_fl_non_iid.yaml'
+    path_config = '../configs/6_cifar_10_sra_fl_non_iid.yaml'
     configs = get_dict_from_yaml(path=path_config)
     print(configs)
     # -------------------------------------- 0. load config ------------------ 

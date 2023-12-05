@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
 
     
-    cifar_cnn = resnet.ResNet(resnet.Bottleneck, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
+    cifar_cnn = resnet.ResNet(resnet.Bottleneck, [3, 4, 6, 3], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
                                   width_per_group=64, replace_stride_with_dilation=None, norm_layer=MyGroupNorm)
     
     cifar_cnn.cuda()

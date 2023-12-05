@@ -87,6 +87,24 @@ cd .\examples\
 python 5_cifar10_fl_non_iid.py
 ```
 
+
+## [Federated Learning Setting CIFAR-100(non-iid)](./examples/7_cifar100_resnet18_non_iid.py)
+|  Number clients | C (fraction/round) | loal epoch | optimizer| learning rate|
+| :----------- | :------------: | ------------: | ------------: |------------: |
+| 100        |   0.1        |   5       | Adam|1e-4
+
+
+|  Non-iid | Model | test acc | epochs|
+| :----------- | :------------: | ------------: | ------------: |
+| 0.3        |    ResNet50        |         | 300|
+| IID        |    ResNet50        |    34.1   | 300|
+```
+cd .\examples\
+```
+```
+python 7_cifar100_resnet18_non_iid.py 
+```
+
 ## layer-wise SRA (FL setting)
 
 `remark`: it could be interpreted as an adaptive attack (adapitive subnet along the layers)

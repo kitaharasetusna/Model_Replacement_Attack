@@ -203,8 +203,8 @@ def testing(model, dataset, bs, criterion, num_classes, classes):
 
     # test loss
     test_loss = 0.0
-    correct_class = list(0. for i in range(num_classes))
-    total_class = list(0. for i in range(num_classes))
+    # correct_class = list(0. for i in range(num_classes))
+    # total_class = list(0. for i in range(num_classes))
 
     test_loader = DataLoader(dataset, batch_size=bs)
     l = len(test_loader)
@@ -229,16 +229,15 @@ def testing(model, dataset, bs, criterion, num_classes, classes):
         correct = np.squeeze(correct_tensor.numpy()) if not torch.cuda.is_available() else np.squeeze(
             correct_tensor.cpu().numpy())
 
-        # test accuracy for each object class
-        for i in range(num_classes):
-            label = labels.data[i]
-            correct_class[label] += correct[i].item()
-            total_class[label] += 1
+        # # test accuracy for each object class
+        # for i in range(num_classes):
+        #     label = labels.data[i]
+        #     correct_class[label] += correct[i].item()
+        #     total_class[label] += 1
 
     # avg test loss
     test_loss = test_loss / len(test_loader.dataset)
 
-    
-    print(100 * correct_/total_)
+    return 100 * correct_/total_, test_loss
 
-    return 100. * np.sum(correct_class) / np.sum(total_class), test_loss
+

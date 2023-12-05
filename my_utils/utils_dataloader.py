@@ -25,6 +25,26 @@ def get_ds_cifar10(config: dict = None):
 
     return cifar_data_train, cifar_data_test
 
+def get_ds_cifar100(config: dict = None):
+    path_data = '../data/cifar100' 
+    if not os.path.exists(path_data):
+        os.mkdir(path_data)
+    
+    stats = ((0.49139968, 0.48215841, 0.44653091), (0.24703223, 0.24348513, 0.26158784))
+    transforms_cifar_train = transforms.Compose([transforms.ToTensor(),
+                                         transforms.RandomCrop(32, padding=4, padding_mode='reflect'),
+                                         transforms.RandomHorizontalFlip(p=0.5),
+                                         transforms.Normalize(*stats)])
+    
+    transforms_cifar_test = transforms.Compose(
+        [transforms.ToTensor(),
+         transforms.Normalize(*stats)]) 
+    
+    cifar_data_train = datasets.CIFAR100(root='../data', train=True, download=True, transform=transforms_cifar_train)
+    cifar_data_test = datasets.CIFAR100(root='../data', train=False, download=True, transform=transforms_cifar_test) 
+
+    return cifar_data_train, cifar_data_test
+
 def get_ds_mnist():
     trans_mnist = transforms.Compose(
                     [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]) 

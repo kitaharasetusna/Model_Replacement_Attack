@@ -3,6 +3,7 @@ import math
 import copy
 import numpy as np
 import torch.nn as nn
+import torch
 
 class MyGroupNorm(nn.Module):
     def __init__(self, num_channels):
@@ -14,6 +15,15 @@ class MyGroupNorm(nn.Module):
         x = self.norm(x)
         return x
 
+# TODO: add more trigger here
+def add_trigger(image, configs:dict):
+    if configs['trigger'] == 'square':
+        pixel_max = torch.max(image) if torch.max(image)>1 else 1
+        image[:,configs['triggerY']:configs['triggerY']+5,
+              configs['triggerX']:configs['triggerX']+5] = pixel_max
+    return image
+
+# deprecated
 def plant_triggers(inputs, trigger, config: dict):
     poisoned_portion, pos, device = config["portion_pois"], config["pos"], config['device']
     poisoned_num = math.ceil(inputs.shape[0] * poisoned_portion)

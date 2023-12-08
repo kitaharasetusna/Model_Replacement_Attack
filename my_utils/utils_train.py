@@ -5,6 +5,11 @@ import time
 import numpy as np
 import copy
 import pickle
+import torch.nn.functional as F
+
+import sys
+sys.path.append('..')  # Adds the parent directory to the Python path1
+from my_utils.utils_model import add_trigger
 
 class CustomDataset(Dataset):
     def __init__(self, dataset, idxs):
@@ -86,7 +91,74 @@ class ClientUpdate(object):
 
         return model.state_dict(), total_loss
 
+def central_benign_training(model: nn.Module, dl_train, configs):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=configs['lr'])
+    # optimizer = torch.optim.SGD(model.parameters(), lr=configs['lr'], momentum=0.5) 
 
+    for input_, label_ in dl_train:
+        input_, label_ = input_.to(configs['device']), label_.to(configs['device'])
+        model.zero_grad()
+        log_probs = model(input_)
+        loss = criterion(log_probs, label_)
+        loss.backward()
+        optimizer.step()
+
+def central_malicious_training(model: nn.Module, dl_train, configs):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=configs['lr'])
+    # optimizer = torch.optim.SGD(model.parameters(), lr=configs['lr'], momentum=0.5)
+
+
+    for input_, label_ in dl_train:
+        bad_input_, bad_label_ = copy.deepcopy(input_), copy.deepcopy(label_)
+        for xx in range(len(bad_input_)):
+            bad_label_[xx] = configs['attack_label']
+            # bad_data[xx][:, 0:5, 0:5] = torch.max(images[xx])
+            bad_input_[xx] = add_trigger(image=bad_input_[xx], configs=configs)
+            
+        input_ = torch.cat((input_, bad_input_), dim=0)
+        label_ = torch.cat((label_, bad_label_))
+        input_, label_ = input_.to(configs['device']), label_.to(configs['device'])
+        model.zero_grad()
+        log_probs = model(input_)
+        loss = criterion(log_probs, label_)
+        loss.backward()
+        optimizer.step()
+
+def central_test_backdoor(model: nn.Module, dl_test, configs):
+    test_loss = 0
+    correct = 0
+    back_correct = 0
+    back_num = 0
+    model.eval()
+    dl_test = DataLoader(dl_test, batch_size=configs['test_batch_size'])
+    for idx, (data, target) in enumerate(dl_test):
+        data, target = data.to(configs['device']), target.to(configs['device'])
+        log_probs = model(data)
+        test_loss += F.cross_entropy(log_probs, target, reduction='sum').item() 
+        y_pred = log_probs.data.max(1, keepdim=True)[1]
+        # test acc
+        correct += y_pred.eq(target.data.view_as(y_pred)).long().cpu().sum()
+        # test backdoor
+        del_arr = []
+        for k, image in enumerate(data):
+            
+            if target[k] != configs['attack_label']:
+                data[k] = add_trigger(image=data[k], configs=configs)
+                target[k] = configs['attack_label'] 
+                back_num += 1
+            else:
+                target[k] = -1 
+        log_probs = model(data)
+        y_pred = log_probs.data.max(1, keepdim=True)[1]
+        back_correct += y_pred.eq(target.data.view_as(y_pred)).long().cpu().sum()
+    test_loss /= len(dl_test.dataset)
+    accuracy = 100.00 * correct / len(dl_test.dataset)
+    BSR = 100.00 * float(back_correct) / back_num
+        
+    return test_loss, accuracy, BSR
+    
 
 # def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, plt_color, cifar_data_test,
 #              test_batch_size, criterion, num_classes, classes_test, sch_flag):
@@ -239,5 +311,4 @@ def testing(model, dataset, bs, criterion, num_classes, classes):
     test_loss = test_loss / len(test_loader.dataset)
 
     return 100 * correct_/total_, test_loss
-
 

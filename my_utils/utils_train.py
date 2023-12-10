@@ -158,7 +158,7 @@ class MaliciousClientUpdate(object):
         L_t = model.state_dict()
         if self.configs['type_attack'] =='scaling_attack':
             for key in L_t.keys():
-                ret_dict = L_t[key]*self.configs['scale_alpha'] 
+                ret_dict[key] = L_t[key]*self.configs['scale_alpha'] 
         else:
             ret_dict = L_t
         return ret_dict, total_loss

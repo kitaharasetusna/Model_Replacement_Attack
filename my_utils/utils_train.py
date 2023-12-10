@@ -277,6 +277,110 @@ def training(model, ds, data_dict, cifar_data_test,
 
     return model
 
+def training_under_attack(model, ds, data_dict, cifar_data_test,
+            criterion, classes_test, sch_flag, config):
+    # global model weights
+    global_weights = model.state_dict()
+
+    # training loss
+    train_loss = []
+    test_loss = []
+    test_accuracy = []
+
+    if config['load_accs']:
+        with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'rb') as f:
+            test_accuracy = pickle.load(f) 
+            f.close()
+        print('accs', test_accuracy)
+    best_accuracy = 0
+    # measure time
+    start = time.time()
+    E = config['epoch_local']
+    lr = config['lr_local']
+
+    for curr_round in range(1+len(test_accuracy)*config['time_step'], config['num_epoch'] + 1):
+        if curr_round == 1:
+            t_accuracy, t_loss = testing(model, cifar_data_test, 
+                                         config['test_batch_size'], criterion,
+                                           config['num_class'], classes_test)
+            test_accuracy.append(t_accuracy)
+            test_loss.append(t_loss)
+
+            if best_accuracy < t_accuracy:
+                best_accuracy = t_accuracy
+            # torch.save(model.state_dict(), plt_title)
+            print(curr_round, t_loss, test_accuracy[-1], best_accuracy)
+            # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
+            with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
+                pickle.dump(test_accuracy, f) 
+                f.close()
+
+        w, local_loss = [], []
+        # Retrieve the number of clients participating in the current training
+        m = max(int(config['C'] * config['num_clients']), 1)
+        # Sample a subset of K clients according with the value defined before
+        S_t = np.random.choice(range(config['num_clients']), m, replace=False)
+        # For the selected clients start a local training
+        for k in S_t:
+            # Compute a local update
+            local_update = ClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
+                                         learning_rate=lr, epochs=E, idxs=data_dict[k],
+                                        sch_flag=sch_flag)
+            # Update means retrieve the values of the network weights
+            weights, loss = local_update.train(model=copy.deepcopy(model))
+
+            w.append(copy.deepcopy(weights))
+            local_loss.append(copy.deepcopy(loss))
+        # lr = 0.999*lr
+        # updating the global weights
+        weights_avg = copy.deepcopy(w[0])
+        for k in weights_avg.keys():
+            for i in range(1, len(w)):
+                weights_avg[k] += w[i][k]
+
+            weights_avg[k] = torch.div(weights_avg[k], len(w))
+
+        global_weights = weights_avg
+
+        if curr_round == 200:
+            lr = lr / 2
+            E = E - 1
+
+        if curr_round == 300:
+            lr = lr / 2
+            E = E - 2
+
+        if curr_round == 400:
+            lr = lr / 5
+            E = E - 3
+
+        # move the updated weights to our model state dict
+        model.load_state_dict(global_weights)
+
+        # loss
+        loss_avg = sum(local_loss) / len(local_loss)
+        # print('Round: {}... \tAverage Loss: {}'.format(curr_round, round(loss_avg, 3)), lr)
+        train_loss.append(loss_avg)
+
+        if curr_round%config['time_step'] == 0:
+            t_accuracy, t_loss = testing(model, cifar_data_test, 
+                                         config['test_batch_size'], 
+                                         criterion, config['num_class'], classes_test)
+            test_accuracy.append(t_accuracy)
+            test_loss.append(t_loss)
+
+            if best_accuracy < t_accuracy:
+                best_accuracy = t_accuracy
+            
+            torch.save(model.state_dict(), config['path_ckpt']+'_'+str(config['degree_non_iid'])+'.pth')
+            # torch.save(model.state_dict(), plt_title)
+            print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
+            # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
+            with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
+                pickle.dump(test_accuracy, f) 
+                f.close()
+
+    return model
 
 def testing(model, dataset, bs, criterion, num_classes, classes):
     total_ = 0

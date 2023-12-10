@@ -27,7 +27,7 @@ torch.backends.cudnn.benchmark = False
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
 from my_utils.utils_model import MyGroupNorm
-from my_utils.utils_train import training, testing
+from my_utils.utils_train import training_under_attack, testing
 from my_utils.utils_dataloader import non_iid_partition, iid_partition
 from my_utils.utils_dataloader import get_ds_cifar10 
 from my_utils.utils_reading_disks import get_dict_from_yaml
@@ -35,7 +35,7 @@ from my_utils.utils_reading_disks import get_dict_from_yaml
 if __name__ == '__main__':
 
     # -------------------------------------- 0. load config ------------------
-    path_config = '../configs/6_cifar_10_sra_fl_non_iid.yaml'
+    path_config = '../configs/9_critical_layer_attack.yaml'
     configs = get_dict_from_yaml(path=path_config)
     print(configs)
     # -------------------------------------- 0. load config ------------------ 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
 
     
-    cifar_cnn = resnet.ResNet(resnet.Bottleneck, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
+    cifar_cnn = resnet.ResNet(resnet.BasicBlock, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
                                   width_per_group=64, replace_stride_with_dilation=None, norm_layer=MyGroupNorm)
     
     cifar_cnn.cuda()
@@ -91,7 +91,7 @@ if __name__ == '__main__':
         print('loading model: ', configs['path_ckpt'])
         cifar_cnn.load_state_dict(torch.load(configs['path_ckpt']+'_'+str(configs['degree_non_iid'])+'.pth'))
 
-    trained_model = training(cifar_cnn, ds_train, data_dict,
+    trained_model = training_under_attack(cifar_cnn, ds_train, data_dict,
                               ds_test, criterion, classes_test, False, config=configs)
 
 

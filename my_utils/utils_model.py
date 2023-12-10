@@ -179,10 +179,11 @@ def get_norm_per_layer(model, dl_test, configs):
             hooks.append(hook)
 
     with torch.no_grad():
-        for inputs, _ in dl_test:
+        for inputs, labels in dl_test:
             inputs = add_trigger(image=inputs, configs=configs)
-            inputs = inputs.to(configs['device'])
-            outputs = model(inputs)
+            if labels == configs['attack_label']:
+                inputs = inputs.to(configs['device'])
+                outputs = model(inputs)
 
     dict_ret = {}
     for layer_name, values in avg_norms.items():
@@ -224,10 +225,10 @@ def plot_dict_ret_func_pair(dict_benign, dict_backdoor):
         G_bd.append(dict_backdoor[layer_name][1])
     
     plt.figure() 
-    plt.plot(range(1, len(Y_bn)+1) , Y_bn, label = '$bn \mathbf{Y}_j$', linestyle='--', marker='s',color='blue')
-    plt.plot(range(1, len(G_bn)+1) , G_bd, label = '$bn G(\mathbf{Y}_j)$', linestyle='--', marker='^', color='red')
-    plt.plot(range(1, len(Y_bd)+1) , Y_bd, label = '$bd \mathbf{Y}_j$', linestyle='--', marker='s',color='cyan')
-    plt.plot(range(1, len(G_bd)+1) , G_bd, label = '$bd G(\mathbf{Y}_j)$', linestyle='--', marker='^', color='orange')
+    plt.plot(range(1, len(Y_bn)+1) , Y_bn, label = 'bn: $\mathbf{Y}_j$', linestyle='--', marker='s',color='blue')
+    plt.plot(range(1, len(G_bn)+1) , G_bd, label = 'bn: $G(\mathbf{Y}_j)$', linestyle='--', marker='^', color='red')
+    plt.plot(range(1, len(Y_bd)+1) , Y_bd, label = 'bd: $\mathbf{Y}_j$', linestyle='--', marker='s',color='cyan')
+    plt.plot(range(1, len(G_bd)+1) , G_bd, label = 'bd: $G(\mathbf{Y}_j)$', linestyle='--', marker='^', color='orange')
     plt.xlabel('Block Number')
     plt.ylabel('L2-norm')
     plt.legend()

@@ -54,6 +54,7 @@ if __name__ == '__main__':
     
     dl_train = DataLoader(mal_train_dataset, batch_size = configs['train_batch_size'], shuffle=True)
     dl_val = DataLoader(mal_val_dataset, batch_size = configs['test_batch_size'], shuffle=True)
+    dl_test = DataLoader(mal_val_dataset, batch_size = 1, shuffle=True)
 
     # --------------------------------------2. init model ----------
     model = resnet.ResNet(resnet.BasicBlock, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
@@ -90,11 +91,11 @@ if __name__ == '__main__':
     
     # print(avg_norms) 
 
-    dict_ret = get_norm_per_layer(model=model_malicious, dl_test=dl_val, configs=configs)
+    dict_ret = get_norm_per_layer(model=model_malicious, dl_test=dl_test, configs=configs)
     print(dict_ret)
     plot_dict_ret_func(dict_ret)
 
-    dict_ret2 = get_norm_per_layer(model=model_benign, dl_test=dl_val, configs=configs)
+    dict_ret2 = get_norm_per_layer(model=model_benign, dl_test=dl_test, configs=configs)
     print(dict_ret2)
     plot_dict_ret_func(dict_ret2)
 

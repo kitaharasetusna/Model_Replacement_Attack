@@ -85,7 +85,7 @@ cd .\examples\
 cd .\examples\
 ```
 ```
-python 5_cifar10_fl_non_iid.py
+python 5_cifar10_resnet50_non_iid.py 
 ```
 
 

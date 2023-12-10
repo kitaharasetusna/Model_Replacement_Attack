@@ -1,3 +1,5 @@
+# Commented out IPython magic to ensure Python compatibility.
+#   %load_ext tensorboard
 import os
 import numpy as np
 import random
@@ -5,109 +7,92 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import resnet
-from torch.utils.data import DataLoader, Dataset
 import pickle
-import copy
-from torchvision.models.feature_extraction import create_feature_extractor
+
+# from torchsummary import summary
 
 # set manual seed for reproducibility
 seed = 42
+
+# general reproducibility
 random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
 
+# gpu training specific
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
+"""## Partitioning the Data (IID and non-IID)"""
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
-from my_utils.utils_model import MyGroupNorm, get_norm_per_layer, plot_dict_ret_func, plot_dict_ret_func_pair
-from my_utils.utils_train import central_test_backdoor, central_benign_training, central_malicious_training, add_trigger
+from my_utils.utils_model import MyGroupNorm
+from my_utils.utils_train import training, testing
+from my_utils.utils_dataloader import non_iid_partition, iid_partition
 from my_utils.utils_dataloader import get_ds_cifar10 
 from my_utils.utils_reading_disks import get_dict_from_yaml
 
 if __name__ == '__main__':
+
     # -------------------------------------- 0. load config ------------------
-    path_config = '../configs/9_critical_layer_attack.yaml'
+    path_config = '../configs/6_cifar_10_sra_fl_non_iid.yaml'
     configs = get_dict_from_yaml(path=path_config)
-    print('exp name: ',configs['exp_name'])
     print(configs)
+    # -------------------------------------- 0. load config ------------------ 
 
-    
-    # --------------------------------------1. load datasets; dataloaders  ---------------- 
+    # --------------------------------------1. load datasets  ---------------- 
     ds_train, ds_test = get_ds_cifar10()
+    # --------------------------------------1. load datasets  ----------------
 
-    num_dataset = len(ds_train)
-    num_malicious_dataset = len(ds_train)//10
+    classes = np.array(list(ds_train.class_to_idx.values()))
+    classes_test = np.array(list(ds_test.class_to_idx.values()))
+    num_classes = len(classes_test)
 
-    data_distribute = np.random.permutation(num_dataset)
-    malicious_dataset=[]
-    mal_val_dataset=[]
-    mal_train_dataset=[]
+    criterion = nn.CrossEntropyLoss()
 
-    for i in range(num_malicious_dataset):
-        malicious_dataset.append(ds_train[data_distribute[i]])
-        if i < num_malicious_dataset//4:
-            mal_val_dataset.append(ds_train[data_distribute[i]])
+
+    # --------------------------------------2. gen non-iid idx  -------------------------------------------------------------
+    folder_idx = '../idx_'+configs['exp_name']
+    import os
+    if not os.path.exists(folder_idx):
+        os.mkdir(folder_idx)
+    if configs['load_idx']==True:
+        print('loading from prev idx')
+        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
+            data_dict = pickle.load(f)
+            f.close()
+    else:
+        print('getting new idx...')
+        # data_dict = non_iid_partition(ds_train, configs['num_clients'], configs['degree_non_iid'])
+        if configs['non_iid'] == True:
+        # (dataset, clients, total_shards, shards_size, num_shards_per_client):
+        # alpha for the Dirichlet distribution
+            data_dict = non_iid_partition(ds_train, configs['num_clients'], configs['degree_non_iid'])
         else:
-            mal_train_dataset.append(ds_train[data_distribute[i]])
-    
-    dl_train = DataLoader(mal_train_dataset, batch_size = configs['train_batch_size'], shuffle=True)
-    dl_val = DataLoader(mal_val_dataset, batch_size = configs['test_batch_size'], shuffle=True)
-    dl_test = DataLoader(mal_val_dataset, batch_size = 1, shuffle=True)
+            data_dict = iid_partition(ds_train, 100)  # Uncomment for idd_partition
+        with open(folder_idx+'/idxs_'+str(configs['degree_non_iid'])+'.pkl', 'wb') as f:
+            pickle.dump(data_dict, f)
+            f.close()
+    # ---------------------------------------------------------------------------------------------------
 
-    # --------------------------------------2. init model ----------
-    model = resnet.ResNet(resnet.BasicBlock, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
-                                  width_per_group=64, replace_stride_with_dilation=None, norm_layer=MyGroupNorm) 
-    
-    model = model.to(configs['device'])
 
     
-    #---------------------------------------3. train benign and backdoor models--
-    model_benign = copy.deepcopy(model)
-    model_malicious = copy.deepcopy(model)
-    if configs['train_from_scratch'] == True:
-        for i in range(15):
-            central_benign_training(model=model_benign, dl_train=dl_train, configs=configs)
-        model_malicious.load_state_dict(model_benign.state_dict())
-        for i in range(5):
-            central_malicious_training(model=model_malicious, dl_train=dl_train, configs=configs)
-        torch.save(model_benign.state_dict(), configs['path_benign_model'])
-        torch.save(model_malicious.state_dict(), configs['path_malicious_model'])
-    else: 
-        dict_benign_model = torch.load(configs['path_benign_model'])
-        dict_malicious_model = torch.load(configs['path_malicious_model'])
-        model_benign.load_state_dict(dict_benign_model)
-        model_malicious.load_state_dict(dict_malicious_model)
-    loss, acc, BSR = central_test_backdoor(model=model_benign, dl_test=mal_train_dataset, configs=configs)
-    print('loss: ', loss, ' acc: ', acc, ' BSR: ', BSR)
-    loss, acc, BSR = central_test_backdoor(model=model_malicious, dl_test=mal_train_dataset, configs=configs)
-    print('loss: ', loss, ' acc: ', acc, ' BSR: ', BSR)
+    cifar_cnn = resnet.ResNet(resnet.Bottleneck, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
+                                  width_per_group=64, replace_stride_with_dilation=None, norm_layer=MyGroupNorm)
+    
+    cifar_cnn.cuda()
 
-    #---------------------------------------4. malicious model through benign data
-    
-    #  #---------------------------------------4.1. malicious model through benign data 
-    
-    
-    # print(avg_norms) 
+    folder_idx = '../idx_'+configs['exp_name']
+    import os
+    if not os.path.exists(folder_idx):
+        os.mkdir(folder_idx)
 
-    dict_ret = get_norm_per_layer(model=model_malicious, dl_test=dl_test, configs=configs)
-    print(dict_ret)
-    plot_dict_ret_func(dict_ret)
+    if configs['load_model']:
+        print('loading model: ', configs['path_ckpt'])
+        cifar_cnn.load_state_dict(torch.load(configs['path_ckpt']+'_'+str(configs['degree_non_iid'])+'.pth'))
 
-    dict_ret2 = get_norm_per_layer(model=model_benign, dl_test=dl_test, configs=configs)
-    print(dict_ret2)
-    plot_dict_ret_func(dict_ret2)
-
-    plot_dict_ret_func_pair(dict_backdoor=dict_ret, dict_benign=dict_ret2)
-    
-    
-    
-    
-
-    
-        
-    
+    trained_model = training(cifar_cnn, ds_train, data_dict,
+                              ds_test, criterion, classes_test, False, config=configs)
 
 
     

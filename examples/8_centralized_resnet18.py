@@ -8,6 +8,7 @@ from torchvision.models import resnet
 from torch.utils.data import DataLoader, Dataset
 import pickle
 import copy
+from torchvision.models.feature_extraction import create_feature_extractor
 
 # set manual seed for reproducibility
 seed = 42
@@ -20,8 +21,8 @@ torch.backends.cudnn.benchmark = False
 
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
-from my_utils.utils_model import MyGroupNorm
-from my_utils.utils_train import central_test_backdoor, central_benign_training, central_malicious_training
+from my_utils.utils_model import MyGroupNorm, get_norm_per_layer, plot_dict_ret_func 
+from my_utils.utils_train import central_test_backdoor, central_benign_training, central_malicious_training, add_trigger
 from my_utils.utils_dataloader import get_ds_cifar10 
 from my_utils.utils_reading_disks import get_dict_from_yaml
 
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     dl_val = DataLoader(mal_val_dataset, batch_size = configs['test_batch_size'], shuffle=True)
 
     # --------------------------------------2. init model ----------
-    model = resnet.ResNet(resnet.Bottleneck, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
+    model = resnet.ResNet(resnet.BasicBlock, [2, 2, 2, 2], num_classes=configs['num_class'], zero_init_residual=False, groups=1,
                                   width_per_group=64, replace_stride_with_dilation=None, norm_layer=MyGroupNorm) 
     
     model = model.to(configs['device'])
@@ -63,20 +64,47 @@ if __name__ == '__main__':
     
     #---------------------------------------3. train benign and backdoor models--
     model_benign = copy.deepcopy(model)
-    for i in range(15):
-        central_benign_training(model=model_benign, dl_train=dl_train, configs=configs)
+    model_malicious = copy.deepcopy(model)
+    if configs['train_from_scratch'] == True:
+        for i in range(15):
+            central_benign_training(model=model_benign, dl_train=dl_train, configs=configs)
+        model_malicious.load_state_dict(model_benign.state_dict())
+        for i in range(5):
+            central_malicious_training(model=model_malicious, dl_train=dl_train, configs=configs)
+        torch.save(model_benign.state_dict(), configs['path_benign_model'])
+        torch.save(model_malicious.state_dict(), configs['path_malicious_model'])
+    else: 
+        dict_benign_model = torch.load(configs['path_benign_model'])
+        dict_malicious_model = torch.load(configs['path_malicious_model'])
+        model_benign.load_state_dict(dict_benign_model)
+        model_malicious.load_state_dict(dict_malicious_model)
     loss, acc, BSR = central_test_backdoor(model=model_benign, dl_test=mal_train_dataset, configs=configs)
     print('loss: ', loss, ' acc: ', acc, ' BSR: ', BSR)
-    
-    
-    model_malicious = copy.deepcopy(model)
-    model_malicious.load_state_dict(model_benign.state_dict())
-    for i in range(5):
-        central_malicious_training(model=model_malicious, dl_train=dl_train, configs=configs)
     loss, acc, BSR = central_test_backdoor(model=model_malicious, dl_test=mal_train_dataset, configs=configs)
     print('loss: ', loss, ' acc: ', acc, ' BSR: ', BSR)
 
+    #---------------------------------------4. malicious model through benign data
     
+    #  #---------------------------------------4.1. malicious model through benign data 
+    
+    
+    # print(avg_norms) 
+
+    dict_ret = get_norm_per_layer(model=model_malicious, dl_test=dl_val, configs=configs)
+    print(dict_ret)
+    plot_dict_ret_func(dict_ret)
+
+    dict_ret2 = get_norm_per_layer(model=model_benign, dl_test=dl_val, configs=configs)
+    print(dict_ret2)
+    plot_dict_ret_func(dict_ret2)
+    
+    
+
+    
+        
+    
+
+
     
     
      

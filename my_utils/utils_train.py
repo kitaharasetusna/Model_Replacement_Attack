@@ -157,11 +157,20 @@ def central_test_backdoor(model: nn.Module, dl_test, configs):
     accuracy = 100.00 * correct / len(dl_test.dataset)
     BSR = 100.00 * float(back_correct) / back_num
         
-    return test_loss, accuracy, BSR
+    return test_loss, accuracy.item(), BSR
     
-
-# def training(model, rounds, batch_size, lr, ds, data_dict, C, K, E, plt_title, plt_color, cifar_data_test,
-#              test_batch_size, criterion, num_classes, classes_test, sch_flag):
+def central_test_norm(model: nn.Module, dl_test, configs):
+    test_loss = 0
+    correct = 0
+    back_correct = 0
+    back_num = 0
+    model.eval()
+    dl_test = DataLoader(dl_test, batch_size=configs['test_batch_size'])
+    for idx, (data, target) in enumerate(dl_test):
+        data, target = data.to(configs['device']), target.to(configs['device'])
+        log_probs = model(data)
+        print(log_probs.shape)
+    return 
 
 def training(model, ds, data_dict, cifar_data_test,
             criterion, classes_test, sch_flag, config):

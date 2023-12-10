@@ -4,6 +4,8 @@ import copy
 import numpy as np
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
+from torchvision.models import resnet
 
 class MyGroupNorm(nn.Module):
     def __init__(self, num_channels):
@@ -132,6 +134,81 @@ def model2vector(model):
         # print(nparr.shape)
         nparr = np.append(nparr, nplist)
     return nparr
+
+
+def create_hook(name, avg_norms):
+    def hook_fn(module, input_, output):
+        input_size = input_[0].size()
+        output_size = output.size()
+        # Extracting the residual module G and the identity mapping Y
+        if input_size[2] > output_size[2]:
+            identity_mapping= F.interpolate(input_[0], size=output_size[2:], mode='bilinear', align_corners=False)
+            num_channels_diff = output_size[1]- identity_mapping.size(1) 
+            if num_channels_diff > 0:
+                # Pad the input tensor with zero channels to match the output tensor's number of channels
+                identity_mapping = torch.cat([identity_mapping, 
+                                                torch.zeros_like(identity_mapping)[:, :num_channels_diff]], dim=1)
+            elif num_channels_diff < 0:
+                # Crop or slice the input tensor to match the output tensor's number of channels
+                identity_mapping = identity_mapping[:, :output_size[1]]
+            else:
+                identity_mapping = identity_mapping[0]        
+        else:
+            identity_mapping = input_[0]
+        
+        residual_module = output - identity_mapping  # Residual module G
+        
+        residual_norm = torch.norm(residual_module, p=2)
+        identity_norm = torch.norm(identity_mapping, p=2)
+        
+        if name not in avg_norms:
+            avg_norms[name] = {'Y_norm': 0.0, "G_norm": 0.0, "count": 0} 
+        
+        avg_norms[name]['Y_norm'] += identity_norm.cpu().item() 
+        avg_norms[name]['G_norm'] += residual_norm.cpu().item()
+        avg_norms[name]['count'] += 1
+    return hook_fn
+
+def get_norm_per_layer(model, dl_test, configs):
+    avg_norms = {}
+    hooks = []
+    for name_, module in model.named_modules():
+        if isinstance(module, resnet.BasicBlock):  
+            hook_fn = create_hook(name_, avg_norms=avg_norms)
+            hook = module.register_forward_hook(hook_fn) 
+            hooks.append(hook)
+
+    with torch.no_grad():
+        for inputs, _ in dl_test:
+            inputs = add_trigger(image=inputs, configs=configs)
+            inputs = inputs.to(configs['device'])
+            outputs = model(inputs)
+
+    dict_ret = {}
+    for layer_name, values in avg_norms.items():
+        # print(layer_name, values['Y_norm'] / values['count'], values['G_norm'] / values['count'])
+        dict_ret[layer_name] = [values['Y_norm'] / values['count'], values['G_norm'] / values['count']]
+    
+    for hook in hooks:
+        hook.remove() 
+    return dict_ret
+
+import matplotlib.pyplot as plt
+def plot_dict_ret_func(dict_ret):
+    Y_ = []
+    G_ = []
+    for layer_name in dict_ret:
+        Y_.append(dict_ret[layer_name][0])
+        G_.append(dict_ret[layer_name][1])
+    
+    plt.figure() 
+    plt.plot(range(1, len(Y_)+1) , Y_, label = '$\mathbf{Y}_j$', linestyle='--', marker='s',color='blue')
+    plt.plot(range(1, len(G_)+1) , G_, label = '$G(\mathbf{Y}_j)$', linestyle='--', marker='^', color='red')
+    plt.xlabel('Block Number')
+    plt.ylabel('L2-norm')
+    plt.legend()
+    plt.grid()
+    plt.show()
 
 if __name__ == "__main__":
     trigger_path = 'triggers/phoenix.png'

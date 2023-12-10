@@ -1,5 +1,9 @@
 exp_name: centrailized_critical_layers_analysis
 
+train_from_scratch: False 
+path_benign_model: '../central_resnet18_cifar10_benign.pth'
+path_malicious_model: '../central_resnet18_cifar10_malicious.pth'        
+
 device: 'cuda'
 
 # data settings

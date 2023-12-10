@@ -18,9 +18,9 @@ For more complicated case, please refer to the `./docs` folder.
 - [x] non-IID dataloaders (MNIST)
 - [x] non-IID dataloaders (CIFAR-10)
 - [ ] FL setting attack and defense framework
-- [ ] Add untargeted attack
 - [ ] layer-wise subnet replacement attack
     - [ ] add check or not to tell one label or all labels
+- [ ] Add untargeted attack
 - [ ] Filp defense (an inversion-based defence)
 
 

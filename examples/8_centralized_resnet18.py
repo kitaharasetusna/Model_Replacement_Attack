@@ -21,7 +21,7 @@ torch.backends.cudnn.benchmark = False
 
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
-from my_utils.utils_model import MyGroupNorm, get_norm_per_layer, plot_dict_ret_func 
+from my_utils.utils_model import MyGroupNorm, get_norm_per_layer, plot_dict_ret_func, plot_dict_ret_func_pair
 from my_utils.utils_train import central_test_backdoor, central_benign_training, central_malicious_training, add_trigger
 from my_utils.utils_dataloader import get_ds_cifar10 
 from my_utils.utils_reading_disks import get_dict_from_yaml
@@ -97,6 +97,10 @@ if __name__ == '__main__':
     dict_ret2 = get_norm_per_layer(model=model_benign, dl_test=dl_val, configs=configs)
     print(dict_ret2)
     plot_dict_ret_func(dict_ret2)
+
+    plot_dict_ret_func_pair(dict_backdoor=dict_ret, dict_benign=dict_ret2)
+    
+    
     
     
 

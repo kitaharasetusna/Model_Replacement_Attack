@@ -210,6 +210,30 @@ def plot_dict_ret_func(dict_ret):
     plt.grid()
     plt.show()
 
+def plot_dict_ret_func_pair(dict_benign, dict_backdoor):
+    Y_bn = []
+    G_bn = []
+    for layer_name in dict_benign:
+        Y_bn.append(dict_benign[layer_name][0])
+        G_bn.append(dict_benign[layer_name][1])
+    
+    Y_bd = []
+    G_bd = []
+    for layer_name in dict_backdoor:
+        Y_bd.append(dict_backdoor[layer_name][0])
+        G_bd.append(dict_backdoor[layer_name][1])
+    
+    plt.figure() 
+    plt.plot(range(1, len(Y_bn)+1) , Y_bn, label = '$bn \mathbf{Y}_j$', linestyle='--', marker='s',color='blue')
+    plt.plot(range(1, len(G_bn)+1) , G_bd, label = '$bn G(\mathbf{Y}_j)$', linestyle='--', marker='^', color='red')
+    plt.plot(range(1, len(Y_bd)+1) , Y_bd, label = '$bd \mathbf{Y}_j$', linestyle='--', marker='s',color='cyan')
+    plt.plot(range(1, len(G_bd)+1) , G_bd, label = '$bd G(\mathbf{Y}_j)$', linestyle='--', marker='^', color='orange')
+    plt.xlabel('Block Number')
+    plt.ylabel('L2-norm')
+    plt.legend()
+    plt.grid()
+    plt.show()
+
 if __name__ == "__main__":
     trigger_path = 'triggers/phoenix.png'
     print(trigger_path)

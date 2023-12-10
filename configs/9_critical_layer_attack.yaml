@@ -1,0 +1,24 @@
+exp_name: centrailized_critical_layers_analysis
+
+train_from_scratch: False 
+path_benign_model: '../central_resnet18_cifar10_benign.pth'
+path_malicious_model: '../central_resnet18_cifar10_malicious.pth'        
+
+device: 'cuda'
+
+# data settings
+num_class: 10
+train_batch_size: 64
+test_batch_size: 64
+
+
+# training settings
+optim_local: 'Adam'
+lr: 0.0001
+
+# attack settings
+trigger: 'square'
+triggerY: 0
+triggerX: 0 
+
+attack_label: 5

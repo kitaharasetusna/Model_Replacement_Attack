@@ -25,13 +25,16 @@ name_model: 'cifar10_resnet'
 
 # attack settings
 ratio_comp: 0.1
+# type_attack: 'badnet'
 type_attack: 'scaling_attack'
 # attack settings
 trigger: 'square'
 triggerY: 0
 triggerX: 0 
 attack_label: 5
-scale_alpha: 100
+# TODO: change thsi back to 100 when used defense like FLAME
+# should be number of clients, but failed without defense on server for gradeint expliding
+scale_alpha: 10
 
 # defence settings
 type_defense: 'None'

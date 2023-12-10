@@ -18,6 +18,9 @@ For more complicated case, please refer to the `./docs` folder.
 - [x] non-IID dataloaders (MNIST)
 - [x] non-IID dataloaders (CIFAR-10)
 - [ ] FL setting attack and defense framework
+    - [x] badnet sacling attack
+    - [ ] critical layer attack
+    - [ ] Flame defense
 - [ ] layer-wise subnet replacement attack
     - [ ] add check or not to tell one label or all labels
 - [ ] Add untargeted attack
@@ -104,6 +107,11 @@ cd .\examples\
 ```
 ```
 python 7_cifar100_resnet18_non_iid.py 
+```
+
+## BadNet and scaling attack
+```
+python 9_FL_critical_layer_attack.py
 ```
 
 ## layer-wise SRA (FL setting)

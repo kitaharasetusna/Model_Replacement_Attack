@@ -115,7 +115,7 @@ class MaliciousClientUpdate(object):
             model.train()
             for data, labels in self.train_loader:
                 bad_input_, bad_label_ = copy.deepcopy(data), copy.deepcopy(labels)
-                if self.configs['type_attack'] == 'badnet':
+                if self.configs['type_attack'] == 'badnet' or self.configs['type_attack'] =='scaling_attack':
                     for xx in range(len(bad_input_)):
                         bad_label_[xx] = self.configs['attack_label']
                         # bad_data[xx][:, 0:5, 0:5] = torch.max(images[xx])
@@ -154,8 +154,14 @@ class MaliciousClientUpdate(object):
             # self.learning_rate = optimizer.param_groups[0]['lr']
 
         total_loss = sum(e_loss) / len(e_loss)
-
-        return model.state_dict(), total_loss
+        ret_dict = {}
+        L_t = model.state_dict()
+        if self.configs['type_attack'] =='scaling_attack':
+            for key in L_t.keys():
+                ret_dict = L_t[key]*self.configs['scale_alpha'] 
+        else:
+            ret_dict = L_t
+        return ret_dict, total_loss
 
 
 

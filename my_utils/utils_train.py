@@ -91,6 +91,74 @@ class ClientUpdate(object):
 
         return model.state_dict(), total_loss
 
+class MaliciousClientUpdate(object):
+    def __init__(self, dataset, batchSize, learning_rate, epochs, idxs, sch_flag, configs):
+        self.train_loader = DataLoader(CustomDataset(dataset, idxs), batch_size=batchSize, shuffle=True)
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+        self.sch_flag = sch_flag
+        self.configs = configs
+
+    def train(self, model):
+
+        criterion = nn.CrossEntropyLoss()
+        # optimizer = torch.optim.SGD(model.parameters(), lr=self.learning_rate, momentum=0.95, weight_decay = 5e-4)
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
+        if self.sch_flag == True:
+           scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5)
+        # my_lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.99)
+        e_loss = []
+        for epoch in range(1, self.epochs + 1):
+
+            train_loss = 0.0
+
+            model.train()
+            for data, labels in self.train_loader:
+                bad_input_, bad_label_ = copy.deepcopy(data), copy.deepcopy(labels)
+                if self.configs['type_attack'] == 'badnet':
+                    for xx in range(len(bad_input_)):
+                        bad_label_[xx] = self.configs['attack_label']
+                        # bad_data[xx][:, 0:5, 0:5] = torch.max(images[xx])
+                        bad_input_[xx] = add_trigger(image=bad_input_[xx], configs=self.configs)
+                # TODO: add 'LR'
+                else:
+                    raise ValueError(self.configs['type_attack'])
+                    
+                data = torch.cat((data, bad_input_), dim=0)
+                labels = torch.cat((labels, bad_label_))
+                data, labels = data.to(self.configs['device']), labels.to(self.configs['device'])
+                if data.size()[0] < 2:
+                    continue
+
+                if torch.cuda.is_available():
+                    data, labels = data.cuda(), labels.cuda()
+
+                # clear the gradients
+                optimizer.zero_grad()
+                # make a forward pass
+                output = model(data)
+                # calculate the loss
+                loss = criterion(output, labels)
+                # do a backwards pass
+                loss.backward()
+                # perform a single optimization step
+                optimizer.step()
+                # update training loss
+                train_loss += loss.item() * data.size(0)
+                if self.sch_flag == True:
+                 scheduler.step(train_loss)
+            # average losses
+            train_loss = train_loss / len(self.train_loader.dataset)
+            e_loss.append(train_loss)
+
+            # self.learning_rate = optimizer.param_groups[0]['lr']
+
+        total_loss = sum(e_loss) / len(e_loss)
+
+        return model.state_dict(), total_loss
+
+
+
 def central_benign_training(model: nn.Module, dl_train, configs):
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=configs['lr'])
@@ -286,33 +354,41 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
     train_loss = []
     test_loss = []
     test_accuracy = []
+    test_BSR = []
 
     if config['load_accs']:
         with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'rb') as f:
-            test_accuracy = pickle.load(f) 
+            test_accuracy, test_BSR = pickle.load(f) 
             f.close()
         print('accs', test_accuracy)
+        print('BSR: ', test_BSR)
     best_accuracy = 0
     # measure time
     start = time.time()
     E = config['epoch_local']
     lr = config['lr_local']
 
+    # get the idx_client for malicious clients 
+    num_bd = int(config['num_clients']*config['ratio_comp']) 
+    idxs_bd = np.random.choice(range(config['num_clients']), num_bd, replace=False)
+
     for curr_round in range(1+len(test_accuracy)*config['time_step'], config['num_epoch'] + 1):
         if curr_round == 1:
-            t_accuracy, t_loss = testing(model, cifar_data_test, 
-                                         config['test_batch_size'], criterion,
-                                           config['num_class'], classes_test)
+            # t_accuracy, t_loss = testing(model, cifar_data_test, 
+            #                              config['test_batch_size'], criterion,
+            #                                config['num_class'], classes_test)
+            t_loss, t_accuracy, t_BSR = central_test_backdoor(model=model, dl_test=cifar_data_test, configs=config)
             test_accuracy.append(t_accuracy)
+            test_BSR.append(t_BSR)
             test_loss.append(t_loss)
 
             if best_accuracy < t_accuracy:
                 best_accuracy = t_accuracy
             # torch.save(model.state_dict(), plt_title)
-            print(curr_round, t_loss, test_accuracy[-1], best_accuracy)
+            print(curr_round, t_loss, test_accuracy[-1], best_accuracy, t_BSR)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
             with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
-                pickle.dump(test_accuracy, f) 
+                pickle.dump((test_accuracy, test_BSR), f) 
                 f.close()
 
         w, local_loss = [], []
@@ -323,11 +399,18 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
         # For the selected clients start a local training
         for k in S_t:
             # Compute a local update
-            local_update = ClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
-                                         learning_rate=lr, epochs=E, idxs=data_dict[k],
-                                        sch_flag=sch_flag)
-            # Update means retrieve the values of the network weights
-            weights, loss = local_update.train(model=copy.deepcopy(model))
+            if k in idxs_bd:
+                local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
+                                            learning_rate=lr, epochs=E, idxs=data_dict[k],
+                                            sch_flag=sch_flag, configs=config)
+                # Update means retrieve the values of the network weights
+                weights, loss = local_update.train(model=copy.deepcopy(model))
+            else:
+                local_update = ClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
+                                            learning_rate=lr, epochs=E, idxs=data_dict[k],
+                                            sch_flag=sch_flag)
+                # Update means retrieve the values of the network weights
+                weights, loss = local_update.train(model=copy.deepcopy(model))
 
             w.append(copy.deepcopy(weights))
             local_loss.append(copy.deepcopy(loss))
@@ -363,10 +446,12 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
         train_loss.append(loss_avg)
 
         if curr_round%config['time_step'] == 0:
-            t_accuracy, t_loss = testing(model, cifar_data_test, 
-                                         config['test_batch_size'], 
-                                         criterion, config['num_class'], classes_test)
+            # t_accuracy, t_loss = testing(model, cifar_data_test, 
+            #                              config['test_batch_size'], 
+            #                              criterion, config['num_class'], classes_test)
+            t_loss, t_accuracy, t_BSR = central_test_backdoor(model=model, dl_test=cifar_data_test, configs=config)
             test_accuracy.append(t_accuracy)
+            test_BSR.append(t_BSR)
             test_loss.append(t_loss)
 
             if best_accuracy < t_accuracy:
@@ -374,10 +459,10 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
             
             torch.save(model.state_dict(), config['path_ckpt']+'_'+str(config['degree_non_iid'])+'.pth')
             # torch.save(model.state_dict(), plt_title)
-            print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy)
+            print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy, t_BSR)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
             with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
-                pickle.dump(test_accuracy, f) 
+                pickle.dump((test_accuracy, test_BSR), f) 
                 f.close()
 
     return model

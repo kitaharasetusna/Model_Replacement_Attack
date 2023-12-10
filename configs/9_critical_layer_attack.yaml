@@ -24,9 +24,13 @@ lr_local: 0.0001
 name_model: 'cifar10_resnet'
 
 # attack settings
-ratio_comp: 0
-type_attack: 'RLS'
-# type_attack: 'scaling'
+ratio_comp: 0.1
+type_attack: 'badnet'
+# attack settings
+trigger: 'square'
+triggerY: 0
+triggerX: 0 
+attack_label: 5
 
 # defence settings
 type_defense: 'None'
@@ -38,5 +42,5 @@ path_ckpt: '../CLA_FedAVG_resnet18_cifar10_SGD_non_iid'
 exp_name: 'CLA_FedAVG_resnet18_SGD_cifar10_SGD_non_iid'
 
 load_idx: True 
-load_model: True 
-load_accs: True 
+load_model: False 
+load_accs: False 

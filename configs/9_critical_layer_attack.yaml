@@ -25,8 +25,8 @@ name_model: 'cifar10_resnet'
 
 # attack settings
 ratio_comp: 0.1
-# type_attack: 'badnet'
-type_attack: 'scaling_attack'
+type_attack: 'badnet'
+# type_attack: 'scaling_attack'
 # attack settings
 trigger: 'square'
 triggerY: 0
@@ -34,17 +34,17 @@ triggerX: 0
 attack_label: 5
 # TODO: change thsi back to 100 when used defense like FLAME
 # should be number of clients, but failed without defense on server for gradeint expliding
-scale_alpha: 10
+scale_alpha: 100
 
 # defence settings
-type_defense: 'None'
+type_defense: 'fedavg'
 
 # path_ckpt: '../FedAVG_resnet18_cifar10_non_iid.pth'
 # exp_name: 'FedAVG_resnet18_cifar10_non_iid'
 # TODO: (3/3)
-path_ckpt: '../CLA_FedAVG_resnet18_cifar10_SGD_non_iid'
-exp_name: 'CLA_FedAVG_resnet18_SGD_cifar10_SGD_non_iid'
+path_ckpt: '../CLA_FedAVG_resnet18_cifar10_SGD_iid'
+exp_name: 'CLA_FedAVG_resnet18_SGD_cifar10_SGD_iid'
 
-load_idx: True 
+load_idx: False 
 load_model: False 
 load_accs: False 

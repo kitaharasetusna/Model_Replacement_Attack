@@ -27,3 +27,13 @@ def fedavg(w):
 
         weights_avg[k] = torch.div(weights_avg[k], len(w))
     return weights_avg
+
+def flame(w):
+    cos_list=[]
+    for i in range(len(w)):
+        cos_i = []
+        for j in range(len(w)):
+            cos_ij = 1-cos_sim(L_W[i], L_W[j])
+            cos_i.append(cos_ij)
+        cos_list.append(cos_i)
+    return weigth_ret

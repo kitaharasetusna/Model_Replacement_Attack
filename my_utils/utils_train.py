@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
 from my_utils.utils_model import add_trigger
-from my_utils.utils_defence import fedavg
+from my_utils.utils_defence import fedavg, flame
 
 class CustomDataset(Dataset):
     def __init__(self, dataset, idxs):
@@ -426,6 +426,8 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
         # TODO: add fedavg, flame here
         if config['type_defense'] == 'fedavg':
             weights_avg = fedavg(w)
+        elif config['type_defense'] == 'flame':
+            weights_avg = flame(w)
         else:
             raise ValueError(config['type_defense'])
         # weights_avg = copy.deepcopy(w[0])

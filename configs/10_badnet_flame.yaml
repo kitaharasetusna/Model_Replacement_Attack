@@ -37,7 +37,8 @@ attack_label: 5
 scale_alpha: 100
 
 # defence settings
-type_defense: 'fedavg'
+# type_defense: 'fedavg'
+type_defense: 'flame'
 
 # path_ckpt: '../FedAVG_resnet18_cifar10_non_iid.pth'
 # exp_name: 'FedAVG_resnet18_cifar10_non_iid'
@@ -45,6 +46,6 @@ type_defense: 'fedavg'
 path_ckpt: '../CLA_FedAVG_resnet18_cifar10_SGD_iid'
 exp_name: 'CLA_FedAVG_resnet18_SGD_cifar10_SGD_iid'
 
-load_idx: False 
+load_idx:  True 
 load_model: False 
 load_accs: False 

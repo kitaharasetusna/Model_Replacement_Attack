@@ -11,6 +11,7 @@ import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
 from my_utils.utils_model import add_trigger
 from my_utils.utils_defence import fedavg, flame
+from my_utils.utils_defence import model2vector
 
 class CustomDataset(Dataset):
     def __init__(self, dataset, idxs):
@@ -398,7 +399,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
                 pickle.dump((test_accuracy, test_BSR), f) 
                 f.close()
 
-        w, local_loss = [], []
+        w, local_loss, ws = [], [], []
         # Retrieve the number of clients participating in the current training
         m = max(int(config['C'] * config['num_clients']), 1)
         # Sample a subset of K clients according with the value defined before
@@ -420,6 +421,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
                 weights, loss = local_update.train(model=copy.deepcopy(model))
 
             w.append(copy.deepcopy(weights))
+            ws.append(model2vector(copy.deepcopy(weights)))
             local_loss.append(copy.deepcopy(loss))
         # lr = 0.999*lr
         # updating the global weights
@@ -427,7 +429,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
         if config['type_defense'] == 'fedavg':
             weights_avg = fedavg(w)
         elif config['type_defense'] == 'flame':
-            weights_avg = flame(w)
+            weights_avg = flame(copy.deepcopy(w), ws, config)
         else:
             raise ValueError(config['type_defense'])
         # weights_avg = copy.deepcopy(w[0])

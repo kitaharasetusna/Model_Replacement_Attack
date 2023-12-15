@@ -43,8 +43,8 @@ type_defense: 'fedavg'
 # path_ckpt: '../FedAVG_resnet18_cifar10_non_iid.pth'
 # exp_name: 'FedAVG_resnet18_cifar10_non_iid'
 # TODO: (3/3)
-path_ckpt: '../CLA_FedAVG_resnet18_cifar10_SGD_iid'
-exp_name: 'CLA_FedAVG_resnet18_SGD_cifar10_SGD_iid'
+path_ckpt: '../badnet_fedavg_resnet18_cifar10_iid'
+exp_name: 'badnet_fedavg_resnet18_cifar10_iid'
 
 load_idx: False 
 load_model: False 

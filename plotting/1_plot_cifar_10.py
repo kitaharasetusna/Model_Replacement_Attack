@@ -18,7 +18,7 @@ def count_classes(dataset, indices, configs, idx_client):
         class_counts[idx_client][target] += 1
     
 
-path_config = '../configs/5_cifar_10_sra_fl_non_iid.yaml'
+path_config = '../configs/10_badnet_flame.yaml'
 configs = get_dict_from_yaml(path=path_config)
 print(configs)
 class_counts = np.zeros((configs['num_clients'], configs['num_class']), dtype=int)
@@ -39,21 +39,31 @@ print(class_counts, np.sum(class_counts))
  
 
 with open('../idx_'+configs['exp_name']+'_accs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
-    test_accuracy = pickle.load(f) 
+    test_accuracy, BSR = pickle.load(f) 
     f.close()
 print(test_accuracy)
 
 train_accs =[]
 test_accs = []
+BSR_ = []
 for test_acc in test_accuracy:
     test_accs.append(test_acc)
-print(train_accs)
+
+for bsr_ in BSR:
+    BSR_.append(bsr_)
+print(BSR_)
 print(test_accs)
 
-print(len(test_accs))
 t = range(0, len(test_accs)*configs['time_step'], configs['time_step'])
 plt.figure(figsize=(5, 4))
 plt.plot(t, test_accs)
 plt.xlabel('epoch')
 plt.ylabel('accuracy (%)')
+plt.show()
+
+t = range(0, len(test_accs)*configs['time_step'], configs['time_step'])
+plt.figure(figsize=(5, 4))
+plt.plot(t, BSR_)
+plt.xlabel('epoch')
+plt.ylabel('BSR')
 plt.show()

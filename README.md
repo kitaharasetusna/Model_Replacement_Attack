@@ -110,8 +110,13 @@ python 7_cifar100_resnet18_non_iid.py
 ```
 
 ## BadNet and scaling attack
+Fedavg:
 ```
-python 9_FL_critical_layer_attack.py
+python .\9_badnet_fedavg.py
+```
+Flame:
+```
+python .\10_badnet_flame.py
 ```
 
 ## layer-wise SRA (FL setting)

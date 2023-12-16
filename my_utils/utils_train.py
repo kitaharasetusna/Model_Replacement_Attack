@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
 from my_utils.utils_model import add_trigger
+from my_utils.utils_attack import get_attack_layers
 from my_utils.utils_defence import fedavg, flame
 from my_utils.utils_defence import model2vector
 
@@ -164,6 +165,111 @@ class MaliciousClientUpdate(object):
         else:
             ret_dict = L_t
         return ret_dict, total_loss
+    
+    def train_layerwise_poisoning(self, model):
+        criterion = nn.CrossEntropyLoss()
+        e_loss = []
+        
+        good_param = copy.deepcopy(model.state_dict())
+        badnet = copy.deepcopy(model)
+        
+        optimizer = torch.optim.Adam(badnet.parameters(), lr=self.learning_rate)
+        if self.sch_flag == True:
+           scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5)
+        
+        # step 1. train a badnet ------------
+        badnet.train() 
+        for epoch in range(1, self.epochs + 1):
+            train_loss = 0.0
+            
+            for data, labels in self.train_loader:
+                bad_input_, bad_label_ = copy.deepcopy(data), copy.deepcopy(labels)
+                
+                for xx in range(len(bad_input_)):
+                    bad_label_[xx] = self.configs['attack_label']
+                    # bad_data[xx][:, 0:5, 0:5] = torch.max(images[xx])
+                    bad_input_[xx] = add_trigger(image=bad_input_[xx], configs=self.configs)
+                
+                data = torch.cat((data, bad_input_), dim=0)
+                labels = torch.cat((labels, bad_label_))
+                data, labels = data.to(self.configs['device']), labels.to(self.configs['device'])
+                if data.size()[0] < 2:
+                    continue
+                if torch.cuda.is_available():
+                    data, labels = data.cuda(), labels.cuda()
+                # clear the gradients
+                optimizer.zero_grad()
+                # make a forward pass
+                output = badnet(data)
+                # calculate the loss
+                loss = criterion(output, labels)
+                # do a backwards pass
+                loss.backward()
+                # perform a single optimization step
+                optimizer.step()
+                # update training loss
+                train_loss += loss.item() * data.size(0)
+                if self.sch_flag == True:
+                 scheduler.step(train_loss)
+            # average losses
+            train_loss = train_loss / len(self.train_loader.dataset)
+            e_loss.append(train_loss)
+        total_loss = sum(e_loss) / len(e_loss)
+
+        bad_net_param = badnet.state_dict()
+        self.malicious_model = copy.deepcopy(badnet)
+        # ------------------------------------------
+
+        # step 2. train a local benign model-----------------------------------
+        model.train()
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.learning_rate)
+        if self.sch_flag == True:
+           scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5)
+        epoch_loss = []
+        for epoch in range(1, self.epochs + 1):
+            train_loss = 0.0
+            
+            for data, labels in self.train_loader:
+                bad_input_, bad_label_ = copy.deepcopy(data), copy.deepcopy(labels)
+                
+                for xx in range(len(bad_input_)):
+                    bad_label_[xx] = self.configs['attack_label']
+                    # bad_data[xx][:, 0:5, 0:5] = torch.max(images[xx])
+                    bad_input_[xx] = add_trigger(image=bad_input_[xx], configs=self.configs)
+                
+                data = torch.cat((data, bad_input_), dim=0)
+                labels = torch.cat((labels, bad_label_))
+                data, labels = data.to(self.configs['device']), labels.to(self.configs['device'])
+                if data.size()[0] < 2:
+                    continue
+                if torch.cuda.is_available():
+                    data, labels = data.cuda(), labels.cuda()
+                # clear the gradients
+                optimizer.zero_grad()
+                # make a forward pass
+                output = model(data)
+                # calculate the loss
+                loss = criterion(output, labels)
+                # do a backwards pass
+                loss.backward()
+                # perform a single optimization step
+                optimizer.step()
+                # update training loss
+                train_loss += loss.item() * data.size(0)
+                if self.sch_flag == True:
+                 scheduler.step(train_loss)
+            # average losses
+            train_loss = train_loss / len(self.train_loader.dataset)
+            epoch_loss.append(train_loss)
+        total_loss = sum(epoch_loss) / len(epoch_loss)
+        #----------------------------------------------
+        
+        # step 3. get critical layers 
+        get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
+        
+       
+       
+        return model.state_dict(), total_loss
 
 
 

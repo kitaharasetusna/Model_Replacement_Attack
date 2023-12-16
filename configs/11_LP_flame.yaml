@@ -38,9 +38,10 @@ scale_alpha: 100
 # type_defense: 'fedavg'
 type_defense: 'flame'
 
+# TODO: change these for each exp
 path_ckpt: '../LP_flame_resnet18_cifar10_iid'
 exp_name: 'LP_flame_resnet18_cifar10_iid'
 
-load_idx: True 
-load_model: True 
-load_accs: True 
+load_idx: False 
+load_model: False 
+load_accs: False 

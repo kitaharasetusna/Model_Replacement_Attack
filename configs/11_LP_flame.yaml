@@ -1,0 +1,46 @@
+#
+device: 'cuda'
+
+# data settings
+num_class: 10
+train_batch_size: 64
+test_batch_size: 128
+
+# FL settings
+non_iid: False
+num_clients: 100
+degree_non_iid: 0.0 # non-iid
+
+num_epoch: 300
+C: 0.1
+lr_global: 1 
+time_step: 5
+
+epoch_local: 5
+optim_local: 'Adam'
+lr_local: 0.0001
+
+# model settings
+name_model: 'cifar10_resnet'
+
+# attack settings
+ratio_comp: 0.1
+type_attack: 'LP' # critical layer attack: layer-wise poisoning
+# trigger settings
+trigger: 'square'
+triggerY: 0
+triggerX: 0 
+attack_label: 5
+# should be number of clients, but failed without defense on server for gradeint expliding
+scale_alpha: 100
+
+# defence settings
+# type_defense: 'fedavg'
+type_defense: 'flame'
+
+path_ckpt: '../LP_flame_resnet18_cifar10_iid'
+exp_name: 'LP_flame_resnet18_cifar10_iid'
+
+load_idx: True 
+load_model: True 
+load_accs: True 

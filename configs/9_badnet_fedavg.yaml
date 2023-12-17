@@ -46,6 +46,7 @@ type_defense: 'fedavg'
 path_ckpt: '../badnet_fedavg_resnet18_cifar10_iid'
 exp_name: 'badnet_fedavg_resnet18_cifar10_iid'
 
-load_idx: False 
-load_model: False 
-load_accs: False 
+load_idx: True 
+load_idx_bd: True 
+load_model: True 
+load_accs: True 

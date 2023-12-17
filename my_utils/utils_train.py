@@ -265,7 +265,8 @@ class MaliciousClientUpdate(object):
         #----------------------------------------------
         
         # step 3. get critical layers 
-        get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
+        # get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
+
         
        
        
@@ -484,7 +485,21 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
 
     # get the idx_client for malicious clients 
     num_bd = int(config['num_clients']*config['ratio_comp']) 
-    idxs_bd = np.random.choice(range(config['num_clients']), num_bd, replace=False)
+    
+    
+    if config['load_idx_bd'] == True:
+        print('loading malicious clients\' index...')
+        with open('../'+config['exp_name']+'_bd_idxs_'+str(config['degree_non_iid'])+'.pkl', 'rb') as f:
+            idxs_bd = pickle.load(f) 
+            f.close()
+        print('index: ', idxs_bd)
+    else:
+        print('creat malicious clients\' index')
+        idxs_bd = np.random.choice(range(config['num_clients']), num_bd, replace=False)
+        with open('../'+config['exp_name']+'_bd_idxs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
+            pickle.dump(idxs_bd, f)
+            f.close()
+        print('index: ', idxs_bd)
 
     for curr_round in range(1+len(test_accuracy)*config['time_step'], config['num_epoch'] + 1):
         if curr_round == 1:

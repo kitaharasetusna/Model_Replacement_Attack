@@ -43,5 +43,6 @@ path_ckpt: '../LP_flame_resnet18_cifar10_iid'
 exp_name: 'LP_flame_resnet18_cifar10_iid'
 
 load_idx: False 
+load_idx_bd: False
 load_model: False 
 load_accs: False 

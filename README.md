@@ -19,8 +19,8 @@ For more complicated case, please refer to the `./docs` folder.
 - [x] non-IID dataloaders (CIFAR-10)
 - [ ] FL setting attack and defense framework
     - [x] badnet sacling attack
+    - [x] Flame defense
     - [ ] critical layer attack
-    - [ ] Flame defense
 - [ ] layer-wise subnet replacement attack
     - [ ] add check or not to tell one label or all labels
 - [ ] Add untargeted attack

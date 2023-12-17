@@ -35,7 +35,7 @@ from my_utils.utils_reading_disks import get_dict_from_yaml
 if __name__ == '__main__':
 
     # -------------------------------------- 0. load config ------------------
-    path_config = '../configs/8_centralized_resnet18.yaml'
+    path_config = '../configs/9_badnet_fedavg.yaml'
     configs = get_dict_from_yaml(path=path_config)
     print(configs)
     # -------------------------------------- 0. load config ------------------ 

@@ -6,6 +6,7 @@ import numpy as np
 import copy
 import pickle
 import torch.nn.functional as F
+import heapq
 
 import sys
 sys.path.append('..')  # Adds the parent directory to the Python path1
@@ -166,7 +167,7 @@ class MaliciousClientUpdate(object):
             ret_dict = L_t
         return ret_dict, total_loss
     
-    def train_layerwise_poisoning(self, model):
+    def train_layerwise_poisoning(self, model, ds_mal_val, ds_mal_train):
         criterion = nn.CrossEntropyLoss()
         e_loss = []
         
@@ -217,7 +218,6 @@ class MaliciousClientUpdate(object):
         total_loss = sum(e_loss) / len(e_loss)
 
         bad_net_param = badnet.state_dict()
-        self.malicious_model = copy.deepcopy(badnet)
         # ------------------------------------------
 
         # step 2. train a local benign model-----------------------------------
@@ -230,15 +230,6 @@ class MaliciousClientUpdate(object):
             train_loss = 0.0
             
             for data, labels in self.train_loader:
-                bad_input_, bad_label_ = copy.deepcopy(data), copy.deepcopy(labels)
-                
-                for xx in range(len(bad_input_)):
-                    bad_label_[xx] = self.configs['attack_label']
-                    # bad_data[xx][:, 0:5, 0:5] = torch.max(images[xx])
-                    bad_input_[xx] = add_trigger(image=bad_input_[xx], configs=self.configs)
-                
-                data = torch.cat((data, bad_input_), dim=0)
-                labels = torch.cat((labels, bad_label_))
                 data, labels = data.to(self.configs['device']), labels.to(self.configs['device'])
                 if data.size()[0] < 2:
                     continue
@@ -263,15 +254,59 @@ class MaliciousClientUpdate(object):
             epoch_loss.append(train_loss)
         total_loss = sum(epoch_loss) / len(epoch_loss)
         #----------------------------------------------
-        
-        # step 3. get critical layers 
-        # get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
+        # # step 3. get critical layers 
+        # # get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
+        # t_loss, t_accuracy, t_BSR_bn = central_test_backdoor(model=model, dl_test=ds_mal_train, configs=self.configs)
+        # # print("benign model testset result(acc/backdoor):",t_accuracy, t_BSR_bn)
+        # t_loss, t_accuracy, t_BSR_bd = central_test_backdoor(model=badnet, dl_test=ds_mal_train, configs=self.configs)
+        # # print("malicious model testset result(acc/backdoor):",t_accuracy, t_BSR_bd)
 
-
+        # # step3.1 LS: get a list of critical layers
+        # good_weight = model.state_dict()
+        # bad_weight = badnet.state_dict()
+        # key_arr = []
+        # value_arr = []
+        # net_ret = copy.deepcopy(model)
+        # for key, var in good_weight.items():
+        #     if self.configs['name_model'] == 'cifar10_resnet':
+        #         if  ('weight' in key and 'conv' in key) or ('linear' in key and 'weight' in key):
+        #             pass
+        #         else:
+        #             continue
+        #     else:
+        #         raise ValueError(self.configs['name_model'])
+        #     param = copy.deepcopy(bad_weight)
+        #     param[key] = var
+        #     net_ret.load_state_dict(param)
+        #     t_loss, t_accuracy, t_BSR_ret = central_test_backdoor(model=net_ret, dl_test=ds_mal_train, configs=self.configs)
+        #     key_arr.append(key)
+        #     value_arr.append(t_BSR_ret- t_BSR_bd)
         
+        # # 3.2 RLS: 
+        # n = 1
+        # temp_BSR = 0
+        # attack_list = []
+        # np_key_arr = np.array(key_arr)
+        # net_ret_fin = copy.deepcopy(model)
+        # while(temp_BSR<t_BSR_bd*self.configs['threshold_LP'] and n <=len(key_arr)):
+        #     minValueIdx = heapq.nsmallest(n, range(len(value_arr)), value_arr.__getitem__)
+        #     attack_list = list(np_key_arr[minValueIdx])
+        #     param = copy.deepcopy(good_weight)
+        #     for layer in attack_list:
+        #         param[layer] = bad_weight[layer]
+        #     net_ret_fin.load_state_dict(param)
+        #     acc, _, temp_BSR = central_test_backdoor(model=net_ret_fin, dl_test=ds_mal_train, configs=self.configs)
+        #     n += 1
+        attack_list = ['linear.weight', 'layer4.1.conv1.weight', 'layer3.0.conv2.weight', 'layer4.1.conv2.weight', 'conv1.weight', 'layer3.0.conv1.weight']
+        attack_param = {} 
+        for key, var in model.state_dict().items():
+            if key in attack_list:
+                # print('LP attacking...')
+                attack_param[key] = bad_net_param[key] 
+            else:
+                attack_param[key] = var
        
-        # TODO: change this 
-        return model.state_dict(), total_loss
+        return attack_param, total_loss
 
 
 
@@ -506,8 +541,10 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
     idxs_bd_data = []
     for idx_bd in idxs_bd:
         idxs_bd_data.extend(list(data_dict[idx_bd]))
-    ds_backdoor = CustomDataset(dataset=ds, idxs=idxs_bd_data) 
-    import sys; sys.exit()
+    quarter_bifurcation = len(idxs_bd_data)//4
+    ds_mal_val = CustomDataset(dataset=ds, idxs=idxs_bd_data[:quarter_bifurcation]) # first quarter
+    ds_mal_train = CustomDataset(dataset=ds, idxs=idxs_bd_data[quarter_bifurcation:]) # the left
+    # import sys; sys.exit()
      
     print('attack type: ', config['type_attack'] , config['type_attack'] == 'LP')
 
@@ -539,8 +576,10 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
                     local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
                                                 learning_rate=lr, epochs=E, idxs=data_dict[k],
                                                 sch_flag=sch_flag, configs=config)
-                    weights, loss = local_update = local_update.train_layerwise_poisoning(model=copy.deepcopy(model))
-                    print('TODO: under construction... LP attack'); import sys; sys.exit()
+                    weights, loss = local_update.train_layerwise_poisoning(model=copy.deepcopy(model), 
+                                                                           ds_mal_train=ds_mal_train,
+                                                                           ds_mal_val=ds_mal_val)
+                    # print('TODO: under construction... LP attack'); import sys; sys.exit()
                 else:
                     local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
                                                 learning_rate=lr, epochs=E, idxs=data_dict[k],

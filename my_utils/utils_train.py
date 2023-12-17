@@ -267,9 +267,10 @@ class MaliciousClientUpdate(object):
         # step 3. get critical layers 
         # get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
 
+
         
        
-       
+        # TODO: change this 
         return model.state_dict(), total_loss
 
 
@@ -500,6 +501,16 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
             pickle.dump(idxs_bd, f)
             f.close()
         print('index: ', idxs_bd)
+    
+    # TODO: prepare malicious dataset
+    idxs_bd_data = []
+    for idx_bd in idxs_bd:
+        idxs_bd_data.extend(list(data_dict[idx_bd]))
+    ds_backdoor = CustomDataset(dataset=ds, idxs=idxs_bd_data) 
+    import sys; sys.exit()
+     
+    print('attack type: ', config['type_attack'] , config['type_attack'] == 'LP')
+
 
     for curr_round in range(1+len(test_accuracy)*config['time_step'], config['num_epoch'] + 1):
         if curr_round == 1:
@@ -524,11 +535,18 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
         for k in S_t:
             # Compute a local update
             if k in idxs_bd:
-                local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
-                                            learning_rate=lr, epochs=E, idxs=data_dict[k],
-                                            sch_flag=sch_flag, configs=config)
-                # Update means retrieve the values of the network weights
-                weights, loss = local_update.train(model=copy.deepcopy(model))
+                if config['type_attack'] == 'LP':
+                    local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
+                                                learning_rate=lr, epochs=E, idxs=data_dict[k],
+                                                sch_flag=sch_flag, configs=config)
+                    weights, loss = local_update = local_update.train_layerwise_poisoning(model=copy.deepcopy(model))
+                    print('TODO: under construction... LP attack'); import sys; sys.exit()
+                else:
+                    local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
+                                                learning_rate=lr, epochs=E, idxs=data_dict[k],
+                                                sch_flag=sch_flag, configs=config)
+                    # Update means retrieve the values of the network weights
+                    weights, loss = local_update.train(model=copy.deepcopy(model))
             else:
                 local_update = ClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
                                             learning_rate=lr, epochs=E, idxs=data_dict[k],

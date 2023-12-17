@@ -503,9 +503,6 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
 
     for curr_round in range(1+len(test_accuracy)*config['time_step'], config['num_epoch'] + 1):
         if curr_round == 1:
-            # t_accuracy, t_loss = testing(model, cifar_data_test, 
-            #                              config['test_batch_size'], criterion,
-            #                                config['num_class'], classes_test)
             t_loss, t_accuracy, t_BSR = central_test_backdoor(model=model, dl_test=cifar_data_test, configs=config)
             test_accuracy.append(t_accuracy)
             test_BSR.append(t_BSR)
@@ -513,9 +510,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
 
             if best_accuracy < t_accuracy:
                 best_accuracy = t_accuracy
-            # torch.save(model.state_dict(), plt_title)
             print(curr_round, t_loss, test_accuracy[-1], best_accuracy, t_BSR)
-            # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
             with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
                 pickle.dump((test_accuracy, test_BSR), f) 
                 f.close()
@@ -553,13 +548,6 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
             weights_avg = flame(copy.deepcopy(w), ws, config)
         else:
             raise ValueError(config['type_defense'])
-        # weights_avg = copy.deepcopy(w[0])
-        # for k in weights_avg.keys():
-        #     for i in range(1, len(w)):
-        #         weights_avg[k] += w[i][k]
-
-        #     weights_avg[k] = torch.div(weights_avg[k], len(w))
-        # TODO: add fedavg, flame here
 
         global_weights = weights_avg
 

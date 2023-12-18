@@ -254,50 +254,50 @@ class MaliciousClientUpdate(object):
             epoch_loss.append(train_loss)
         total_loss = sum(epoch_loss) / len(epoch_loss)
         #----------------------------------------------
-        # # step 3. get critical layers 
-        # # get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
-        # t_loss, t_accuracy, t_BSR_bn = central_test_backdoor(model=model, dl_test=ds_mal_train, configs=self.configs)
-        # # print("benign model testset result(acc/backdoor):",t_accuracy, t_BSR_bn)
-        # t_loss, t_accuracy, t_BSR_bd = central_test_backdoor(model=badnet, dl_test=ds_mal_train, configs=self.configs)
-        # # print("malicious model testset result(acc/backdoor):",t_accuracy, t_BSR_bd)
+        # step 3. get critical layers 
+        # get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
+        t_loss, t_accuracy, t_BSR_bn = central_test_backdoor(model=model, dl_test=ds_mal_train, configs=self.configs)
+        # print("benign model testset result(acc/backdoor):",t_accuracy, t_BSR_bn)
+        t_loss, t_accuracy, t_BSR_bd = central_test_backdoor(model=badnet, dl_test=ds_mal_train, configs=self.configs)
+        # print("malicious model testset result(acc/backdoor):",t_accuracy, t_BSR_bd)
 
-        # # step3.1 LS: get a list of critical layers
-        # good_weight = model.state_dict()
-        # bad_weight = badnet.state_dict()
-        # key_arr = []
-        # value_arr = []
-        # net_ret = copy.deepcopy(model)
-        # for key, var in good_weight.items():
-        #     if self.configs['name_model'] == 'cifar10_resnet':
-        #         if  ('weight' in key and 'conv' in key) or ('linear' in key and 'weight' in key):
-        #             pass
-        #         else:
-        #             continue
-        #     else:
-        #         raise ValueError(self.configs['name_model'])
-        #     param = copy.deepcopy(bad_weight)
-        #     param[key] = var
-        #     net_ret.load_state_dict(param)
-        #     t_loss, t_accuracy, t_BSR_ret = central_test_backdoor(model=net_ret, dl_test=ds_mal_train, configs=self.configs)
-        #     key_arr.append(key)
-        #     value_arr.append(t_BSR_ret- t_BSR_bd)
+        # step3.1 LS: get a list of critical layers
+        good_weight = model.state_dict()
+        bad_weight = badnet.state_dict()
+        key_arr = []
+        value_arr = []
+        net_ret = copy.deepcopy(model)
+        for key, var in good_weight.items():
+            if self.configs['name_model'] == 'cifar10_resnet':
+                if  ('weight' in key and 'conv' in key) or ('linear' in key and 'weight' in key):
+                    pass
+                else:
+                    continue
+            else:
+                raise ValueError(self.configs['name_model'])
+            param = copy.deepcopy(bad_weight)
+            param[key] = var
+            net_ret.load_state_dict(param)
+            t_loss, t_accuracy, t_BSR_ret = central_test_backdoor(model=net_ret, dl_test=ds_mal_train, configs=self.configs)
+            key_arr.append(key)
+            value_arr.append(t_BSR_ret- t_BSR_bd)
         
-        # # 3.2 RLS: 
-        # n = 1
-        # temp_BSR = 0
-        # attack_list = []
-        # np_key_arr = np.array(key_arr)
-        # net_ret_fin = copy.deepcopy(model)
-        # while(temp_BSR<t_BSR_bd*self.configs['threshold_LP'] and n <=len(key_arr)):
-        #     minValueIdx = heapq.nsmallest(n, range(len(value_arr)), value_arr.__getitem__)
-        #     attack_list = list(np_key_arr[minValueIdx])
-        #     param = copy.deepcopy(good_weight)
-        #     for layer in attack_list:
-        #         param[layer] = bad_weight[layer]
-        #     net_ret_fin.load_state_dict(param)
-        #     acc, _, temp_BSR = central_test_backdoor(model=net_ret_fin, dl_test=ds_mal_train, configs=self.configs)
-        #     n += 1
-        attack_list = ['linear.weight', 'layer4.1.conv1.weight', 'layer3.0.conv2.weight', 'layer4.1.conv2.weight', 'conv1.weight', 'layer3.0.conv1.weight']
+        # 3.2 RLS: 
+        n = 1
+        temp_BSR = 0
+        attack_list = []
+        np_key_arr = np.array(key_arr)
+        net_ret_fin = copy.deepcopy(model)
+        while(temp_BSR<t_BSR_bd*self.configs['threshold_LP'] and n <=len(key_arr)):
+            minValueIdx = heapq.nsmallest(n, range(len(value_arr)), value_arr.__getitem__)
+            attack_list = list(np_key_arr[minValueIdx])
+            param = copy.deepcopy(good_weight)
+            for layer in attack_list:
+                param[layer] = bad_weight[layer]
+            net_ret_fin.load_state_dict(param)
+            acc, _, temp_BSR = central_test_backdoor(model=net_ret_fin, dl_test=ds_mal_train, configs=self.configs)
+            n += 1
+        # attack_list = ['linear.weight', 'layer4.1.conv1.weight', 'layer3.0.conv2.weight', 'layer4.1.conv2.weight', 'conv1.weight', 'layer3.0.conv1.weight']
         attack_param = {} 
         for key, var in model.state_dict().items():
             if key in attack_list:

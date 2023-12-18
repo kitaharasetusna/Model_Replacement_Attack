@@ -254,6 +254,14 @@ class MaliciousClientUpdate(object):
             epoch_loss.append(train_loss)
         total_loss = sum(epoch_loss) / len(epoch_loss)
         #----------------------------------------------
+        # TODO: make the following on a [new trained benign model] (make a backup [model benign])
+        # after some optims on ds_mal_train until it reached 93 acc (or 80 after 30 epochs)
+        # TODO: then we train on the [new train benign model (copy)] on ds_mal_train to get the [malicious model]  
+        # TODO: get BSR on ds_mal_val of the [malicious model]
+        # TODO: add fixed layers if it already achieved high BSR w.r.t to the original local backdoor 
+        # TODO: use the attack list to get the local malicious model we wanted
+
+        
         # step 3. get critical layers 
         # get_attack_layers(self.configs, copy.deepcopy(model.state_dict()), copy.deepcopy(bad_net_param))
         t_loss, t_accuracy, t_BSR_bn = central_test_backdoor(model=model, dl_test=ds_mal_train, configs=self.configs)

@@ -37,6 +37,7 @@ triggerX: 0
 attack_label: 5
 # should be number of clients, but failed without defense on server for gradeint expliding
 scale_alpha: 100
+tau: 0.8
 
 # defence settings
 # type_defense: 'fedavg'

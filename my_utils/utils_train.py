@@ -280,7 +280,7 @@ class MaliciousClientUpdate(object):
             central_benign_training(model=model_benign, dl_train=dl_mal_train, configs=self.configs)
             num_time += 1
             if num_time%4==0:
-                acc, _, _ = central_test_backdoor(model=model_benign, dl_test=ds_mal_train, configs=self.configs)
+                _,acc, _ = central_test_backdoor(model=model_benign, dl_test=ds_mal_train, configs=self.configs)
                 print(acc, '/',min_acc)
                 model_copy = model_benign
                 if num_time > 30:

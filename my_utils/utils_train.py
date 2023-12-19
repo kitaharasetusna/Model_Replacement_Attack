@@ -291,7 +291,7 @@ class MaliciousClientUpdate(object):
                         pass_ = True
                         break
         if acc>=min_acc:
-            pass_ =True
+            pass_ =False
         if pass_ == False:
             # 2 
             model_malicious = copy.deepcopy(model)

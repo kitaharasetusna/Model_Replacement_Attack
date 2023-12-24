@@ -39,9 +39,11 @@ print(class_counts, np.sum(class_counts))
  
 
 with open('../idx_'+configs['exp_name']+'_accs_'+str(configs['degree_non_iid'])+'.pkl', 'rb') as f:
-    test_accuracy, BSR = pickle.load(f) 
+    test_accuracy, BSR, sel_ = pickle.load(f) 
     f.close()
-print(test_accuracy)
+print('ACC: ', test_accuracy)
+print('BSR: ', BSR)
+print('sel_: ', sel_)
 
 train_accs =[]
 test_accs = []

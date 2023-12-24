@@ -361,7 +361,7 @@ class MaliciousClientUpdate(object):
             else:
                 attack_param[key] = var
        
-        return attack_param, total_loss
+        return attack_param, total_loss, attack_list
 
 
 
@@ -561,6 +561,8 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
     test_loss = []
     test_accuracy = []
     test_BSR = []
+    ls_sel_ = []
+    ls_mask_ = []
 
     if config['load_accs']:
         with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'rb') as f:
@@ -620,7 +622,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
                 best_accuracy = t_accuracy
             print(curr_round, t_loss, test_accuracy[-1], best_accuracy, t_BSR)
             with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
-                pickle.dump((test_accuracy, test_BSR), f) 
+                pickle.dump((test_accuracy, test_BSR, ls_sel_, ls_mask_), f) 
                 f.close()
 
         w, local_loss, ws = [], [], []
@@ -642,7 +644,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
                     local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
                                                 learning_rate=lr, epochs=E, idxs=data_dict[k],
                                                 sch_flag=sch_flag, configs=config)
-                    weights, loss = local_update.train_layerwise_poisoning(model=copy.deepcopy(model), 
+                    weights, loss, mask_ = local_update.train_layerwise_poisoning(model=copy.deepcopy(model), 
                                                                            ds_mal_train=ds_mal_train,
                                                                            ds_mal_val=ds_mal_val, args = args)
                     # print('TODO: under construction... LP attack'); import sys; sys.exit()
@@ -670,7 +672,8 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
         if config['type_defense'] == 'fedavg':
             weights_avg = fedavg(w)
         elif config['type_defense'] == 'flame':
-            weights_avg = flame(copy.deepcopy(w), ws, config, idxs_bd)
+            weights_avg, sel_ = flame(copy.deepcopy(w), ws, config, idxs_bd, S_t)
+            ls_sel_.append(sel_)
         else:
             raise ValueError(config['type_defense'])
 
@@ -712,8 +715,10 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy, t_BSR)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
+            ls_mask_.append(mask_)
             with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
-                pickle.dump((test_accuracy, test_BSR), f) 
+                print(test_accuracy, test_BSR, ls_sel_, ls_mask_)
+                pickle.dump((test_accuracy, test_BSR, ls_sel_, ls_mask_), f) 
                 f.close()
 
     return model

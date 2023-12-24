@@ -49,5 +49,5 @@ exp_name: 'LP_flame_resnet18_cifar10_iid'
 
 load_idx: True 
 load_idx_bd: True 
-load_model: True 
-load_accs: True 
+load_model: False 
+load_accs: False 

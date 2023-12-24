@@ -42,7 +42,7 @@ def fedavg(w):
         weights_avg[k] = torch.div(weights_avg[k], len(w))
     return weights_avg
 
-def flame(L_s, L_W, configs, idx_bd):
+def flame(L_s, L_W, configs, idx_bd, idxs_cur):
     # L_W: a list of weight (vector)
     cos_list=[]
     for i in range(len(L_W)):
@@ -85,7 +85,12 @@ def flame(L_s, L_W, configs, idx_bd):
             for key in L_s[benign_client[i]]:
                 L_s[benign_client[i]][key] *=  gama 
         L_s_p.append(L_s[benign_client[i]])
+    l_bsc = [idxs_cur[benign_client[i]] for i in range(len(benign_client))]
+    print('clients selected by flame:', l_bsc)
     L_s = L_s_p 
+    ret_sel = 0
+    if 0 in benign_client:
+        ret_sel =1
 
     weight_ret = fedavg(w=L_s)
-    return weight_ret
+    return weight_ret, ret_sel 

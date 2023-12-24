@@ -649,6 +649,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
                                                                            ds_mal_val=ds_mal_val, args = args)
                     # print('TODO: under construction... LP attack'); import sys; sys.exit()
                     print("attack list cahce: ", args['attack_layer'])
+                    ls_mask_.append(mask_)
                 else:
                     local_update = MaliciousClientUpdate(dataset=ds, batchSize=config['train_batch_size'],
                                                 learning_rate=lr, epochs=E, idxs=data_dict[k],
@@ -715,7 +716,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
             # torch.save(model.state_dict(), plt_title)
             print(curr_round, loss_avg, t_loss, test_accuracy[-1], best_accuracy, t_BSR)
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
-            ls_mask_.append(mask_)
+            
             with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
                 print(test_accuracy, test_BSR, ls_sel_, ls_mask_)
                 pickle.dump((test_accuracy, test_BSR, ls_sel_, ls_mask_), f) 

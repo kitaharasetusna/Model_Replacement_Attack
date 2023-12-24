@@ -352,6 +352,7 @@ class MaliciousClientUpdate(object):
 
        
         args['attack_layer'] = attack_list 
+        print('attack list', attack_list)
         attack_param = {} 
         for key, var in model.state_dict().items():
             if key in attack_list:
@@ -669,7 +670,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
         if config['type_defense'] == 'fedavg':
             weights_avg = fedavg(w)
         elif config['type_defense'] == 'flame':
-            weights_avg = flame(copy.deepcopy(w), ws, config)
+            weights_avg = flame(copy.deepcopy(w), ws, config, idxs_bd)
         else:
             raise ValueError(config['type_defense'])
 

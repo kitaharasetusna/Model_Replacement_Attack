@@ -304,15 +304,16 @@ class MaliciousClientUpdate(object):
             good_weight = model_benign.state_dict()
             bad_weight = model_malicious.state_dict()
             
-            temp_weight = copy.deepcopy(good_weight)
-            if args['attack_layer']==None:
-                args['attack_layer'] = [] 
-            for layer in args['attack_layer']:
-                temp_weight[layer] = bad_weight[layer]
-            temp_model = copy.deepcopy(model_benign)
-            temp_model.load_state_dict(temp_weight) 
-            _, acc_tmp, BSR_tmp = central_test_backdoor(model=temp_model, dl_test=ds_mal_val, configs=self.configs)
-            if BSR_tmp>threshold*BSR_mal:
+            # temp_weight = copy.deepcopy(good_weight)
+            # if args['attack_layer']==None:
+            #     args['attack_layer'] = [] 
+            # for layer in args['attack_layer']:
+            #     temp_weight[layer] = bad_weight[layer]
+            # temp_model = copy.deepcopy(model_benign)
+            # temp_model.load_state_dict(temp_weight) 
+            # _, acc_tmp, BSR_tmp = central_test_backdoor(model=temp_model, dl_test=ds_mal_val, configs=self.configs)
+            # if BSR_tmp>threshold*BSR_mal:
+            if False:
                 print(BSR_tmp, ">", threshold*BSR_mal, "SKIP")
                 attack_list = args['attack_layer']
             else:
@@ -336,7 +337,7 @@ class MaliciousClientUpdate(object):
                 attack_list = []
                 np_key_arr = np.array(key_arr)
                 net4 = copy.deepcopy(model_benign)
-                while (temp_BSR < BSR_mal * threshold and n <= len(key_arr)):
+                while (temp_BSR < BSR_mal * 0.8 and n <= len(key_arr)):
                     minValueIdx = heapq.nsmallest(n, range(len(value_arr)), value_arr.__getitem__)
                     attack_list = list(np_key_arr[minValueIdx])
                     param = copy.deepcopy(good_weight)
@@ -566,7 +567,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
 
     if config['load_accs']:
         with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'rb') as f:
-            test_accuracy, test_BSR = pickle.load(f) 
+            test_accuracy, test_BSR, ls_sel_, ls_mask_ = pickle.load(f) 
             f.close()
         print('accs', test_accuracy)
         print('BSR: ', test_BSR)
@@ -718,7 +719,7 @@ def training_under_attack(model, ds, data_dict, cifar_data_test,
             # print('best_accuracy:', best_accuracy, '---Round:', curr_round, '---lr', lr, '----localEpocs--', E)
             
             with open('../idx_'+config['exp_name']+'_accs_'+str(config['degree_non_iid'])+'.pkl', 'wb') as f:
-                print(test_accuracy, test_BSR, ls_sel_, ls_mask_)
+                print(ls_sel_[-1], len(ls_sel_), ls_mask_[-1], len(ls_mask_))
                 pickle.dump((test_accuracy, test_BSR, ls_sel_, ls_mask_), f) 
                 f.close()
 
